@@ -1146,8 +1146,8 @@ function qSentence(S){
 }
 
 /* ---------- start ---------- */
+/* always open on the players page, so the current player and "New player" are both visible */
 if(!profiles.length) openEdit(null);
-else if(profiles.length===1){ me = profiles[0]; goPick(); }
 else goWho();
 </script>
 </body>
