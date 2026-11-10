@@ -777,17 +777,17 @@ function frIndef(fr){
   return fr;
 }
 
-/* The two languages on screen always carry the same kind of article:
-   "le chat / the cat", "en katt / a cat", "katten / le chat", "en katt / un chat". */
+/* Each time a theme is played, a countable word shows up either as "the" or as "a", and both
+   languages on screen always agree: "le chat / the cat / katten" or "un chat / a cat / en katt".
+   Words with no article in Norwegian (melk, mamma, tennis) are the uncountable ones and never switch. */
 const items = t => {
-  const L = LEVELS[level], k = Object.keys(L.themes).indexOf(t), pair = C.t + C.n;
-  const hasNb = pair.includes("nb"), hasFr = pair.includes("fr");
+  const L = LEVELS[level], k = Object.keys(L.themes).indexOf(t), hasNb = (C.t + C.n).includes("nb");
   return L.themes[t].map((s,i)=>{ const [fr,en,p] = s.split("|"), nb = NB[level][k][i];
-    if(!hasNb) return {id:i, fr, en:enWith(en, fr), p, nb};
     const art = /^(en|et) /.test(nb), def = art ? (NBD[level][k] || [])[i] : "";
-    if(def && Math.random() < (hasFr ? 0.5 : 0.4))        /* Norwegian "the" form: katten */
-      return {id:i, fr, en:NO_THE.has(en) ? en : "the " + en, p, nb:def};
-    return {id:i, fr: art ? frIndef(fr) : fr, en:enWith(en, nb), p, nb}; });
+    if(!art) return {id:i, fr, en:enWith(en, hasNb ? nb : fr), p, nb};
+    if((def || !hasNb) && Math.random() < 0.5)
+      return {id:i, fr, en:NO_THE.has(en) ? en : "the " + en, p, nb:def || nb};
+    return {id:i, fr:frIndef(fr), en:enWith(en, nb), p, nb}; });
 };
 /* English gets the same kind of article as the word it is paired with: "la lune" -> "the moon", "en måne" -> "a moon" */
 const NO_A = new Set(["scissors","trousers","glasses","gloves","grapes","fries","skates","dice","broccoli","Earth","lightning","shorts"]);
