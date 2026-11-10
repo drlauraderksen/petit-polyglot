@@ -1,0 +1,31 @@
+name: Build app
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      - name: Build the app
+        run: gradle :app:assembleRelease --no-daemon
+      - name: Name the file
+        run: cp app/build/outputs/apk/release/app-release.apk petit-polyglot.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: petit-polyglot-apk
+          path: petit-polyglot.apk
+      - name: Publish the download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "v${{ github.run_number }}" petit-polyglot.apk --title "Build ${{ github.run_number }}" --notes "Open this page on the tablet and tap petit-polyglot.apk to install or update."

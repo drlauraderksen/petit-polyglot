@@ -1,0 +1,36 @@
+plugins { id 'com.android.application' }
+
+// Each automatic build gets a higher number, so a new file installs over the old one and keeps progress.
+def buildNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1') as Integer
+
+android {
+    namespace 'family.petitpolyglot'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'family.petitpolyglot'
+        minSdk 24
+        targetSdk 34
+        versionCode buildNumber
+        versionName "1.${buildNumber}"
+    }
+
+    // The same signing key must be used for every build, or Android refuses to update the app.
+    signingConfigs {
+        family {
+            storeFile file('family.jks')
+            storePassword 'petitpolyglot'
+            keyAlias 'family'
+            keyPassword 'petitpolyglot'
+        }
+    }
+    buildTypes {
+        release { signingConfig signingConfigs.family; minifyEnabled false }
+        debug { signingConfig signingConfigs.family }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    lint { checkReleaseBuilds false; abortOnError false }
+}

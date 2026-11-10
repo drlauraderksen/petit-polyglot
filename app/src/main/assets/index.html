@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Petit Polyglot</title>
+<style>
+@font-face{font-family:'Baloo 2';font-weight:600;src:url(fonts/baloo-2-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Baloo 2';font-weight:800;src:url(fonts/baloo-2-latin-800-normal.woff2) format('woff2')}
+@font-face{font-family:'Nunito';font-weight:600;src:url(fonts/nunito-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Nunito';font-weight:800;src:url(fonts/nunito-latin-800-normal.woff2) format('woff2')}
+:root{
+  /* Layout: one-screen app. Slim header, big stage in the middle, answers at thumb height. */
+  --sky:#DDF0FF;
+  --ink:#16255C;
+  --sun:#FFC93C;
+  --coral:#FF6B5E;
+  --leaf:#2FB67C;
+  --paper:#FFFFFF;
+  --mist:#A9C6E6;
+  --display:'Baloo 2','Trebuchet MS',sans-serif;
+  --body:'Nunito',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--sky);color:var(--ink);font-family:var(--body);font-weight:600;
+  overflow-x:hidden;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;border:0;cursor:pointer;background:none;padding:0}
+button:focus-visible{outline:4px solid var(--coral);outline-offset:3px}
+[hidden]{display:none!important}
+.app{max-width:560px;height:100%;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+
+/* ---------- home ---------- */
+#home{display:flex;flex-direction:column;gap:16px;flex:1;min-height:0;overflow-y:auto}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;margin:0;text-wrap:balance}
+.flag{display:inline-flex;width:44px;height:30px;border-radius:6px;overflow:hidden;border:3px solid var(--ink);flex:none}
+.flag i{flex:1}.flag i:nth-child(1){background:#2456D6}.flag i:nth-child(2){background:#fff}.flag i:nth-child(3){background:var(--coral)}
+.total{font-family:var(--display);font-weight:800;font-size:1.3rem;background:var(--paper);border:3px solid var(--ink);border-radius:999px;padding:2px 14px;white-space:nowrap}
+.hello{display:flex;align-items:center;gap:12px;background:var(--paper);border:3px solid var(--ink);border-radius:22px;padding:12px 16px;box-shadow:0 5px 0 var(--ink);text-align:left;width:100%}
+.hello b{font-family:var(--display);font-size:1.7rem;font-weight:800;line-height:1.1}
+.hello small{display:block;font-size:.95rem;opacity:.75}
+.label{font-family:var(--display);font-weight:800;font-size:1.15rem;margin:4px 0 -6px}
+.themes{display:flex;flex-wrap:wrap;gap:10px}
+.theme{background:var(--paper);border:3px solid var(--ink);border-radius:999px;padding:8px 16px;font-weight:800;font-size:1.05rem}
+.theme[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.games{display:flex;flex-direction:column;gap:14px}
+.game{display:flex;align-items:center;gap:14px;text-align:left;border:3px solid var(--ink);border-radius:24px;padding:14px 16px;box-shadow:0 6px 0 var(--ink);width:100%}
+.game:active,.hello:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
+.game .ico{font-size:2.4rem;width:60px;height:60px;display:grid;place-items:center;background:var(--paper);border:3px solid var(--ink);border-radius:18px;flex:none}
+.game b{font-family:var(--display);font-weight:800;font-size:1.5rem;line-height:1.1;display:block}
+.game span.d{font-size:.98rem}
+.g1{background:var(--sun)}.g2{background:#8FE3C0}.g3{background:#FFB3AC}
+.note{font-size:.9rem;background:var(--paper);border:2px dashed var(--coral);border-radius:14px;padding:10px 12px}
+
+/* ---------- game ---------- */
+#game{display:flex;flex-direction:column;gap:14px;flex:1;min-height:0}
+.bar{display:flex;align-items:center;gap:12px}
+.back{background:var(--paper);border:3px solid var(--ink);border-radius:999px;padding:6px 14px;font-weight:800}
+.dots{display:flex;gap:6px;flex:1;justify-content:center}
+.dots i{width:14px;height:14px;border-radius:50%;border:3px solid var(--ink);background:var(--paper)}
+.dots i.on{background:var(--sun)}
+.stars{font-family:var(--display);font-weight:800;font-size:1.3rem;white-space:nowrap;position:relative;background:var(--sun);border:3px solid var(--ink);border-radius:999px;padding:2px 14px}
+.plus{position:absolute;right:8px;top:100%;color:var(--leaf);font-size:1.5rem;animation:rise .9s forwards;pointer-events:none}
+@keyframes rise{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(26px)}}
+.meter{display:block;height:12px;border:2px solid var(--ink);border-radius:999px;background:var(--paper);overflow:hidden;margin-top:8px}
+.meter i{display:block;height:100%;width:0;background:var(--leaf);transition:width .3s}
+.bar .meter{flex:1;height:18px;margin:0;border-width:3px}
+.grow{flex:1;min-width:0;display:block}
+.game .d{display:block}
+.ico.num{font-family:var(--display);font-weight:800}
+.btn.go{background:#8FE3C0}
+.stage{flex:1;min-height:0;background:var(--paper);border:3px solid var(--ink);border-radius:28px;padding:16px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;overflow:auto}
+.hint{font-size:1rem;opacity:.75;margin:0}
+.fr{font-family:var(--display);font-weight:800;font-size:2.4rem;line-height:1.1;display:inline-flex;align-items:center;gap:10px;
+  background:var(--sun);border:3px solid var(--ink);border-radius:20px;padding:8px 18px;box-shadow:0 5px 0 var(--ink)}
+.fr:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)}
+.spk{width:1em;height:1em;flex:none}
+.answers{display:grid;gap:12px}
+.pics{grid-template-columns:1fr 1fr}
+.card{background:var(--paper);border:3px solid var(--ink);border-radius:24px;box-shadow:0 5px 0 var(--ink);
+  height:clamp(88px,17vh,130px);display:grid;place-items:center;font-size:clamp(2.6rem,9vh,4rem);line-height:1}
+.swatch{display:block;width:1.15em;height:1.15em;border-radius:50%;border:3px solid var(--ink)}
+.num{font-family:var(--display);font-weight:800}
+.ok{background:#C9F4DF!important;border-color:var(--leaf)!important;box-shadow:0 5px 0 var(--leaf)!important}
+.gone{opacity:.3;pointer-events:none}
+.shake{animation:shake .4s}
+@keyframes shake{20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.pop{animation:pop .45s}
+@keyframes pop{50%{transform:scale(1.12)}}
+
+/* match */
+.match{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
+.col{display:flex;flex-direction:column;gap:12px}
+.tile{border:3px solid var(--ink);border-radius:18px;box-shadow:0 5px 0 var(--ink);min-height:62px;padding:6px 10px;
+  font-weight:800;font-size:1.25rem;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--paper);overflow-wrap:anywhere}
+.tile.f{background:var(--sun);font-family:var(--display);font-size:1.4rem}
+.tile.sel{background:var(--ink);color:var(--paper)}
+.tile.ok{pointer-events:none}
+.tile .swatch{width:26px;height:26px;flex:none}
+.colhead{font-size:.9rem;opacity:.7;margin:0 0 -4px}
+
+/* sentence */
+.scene{font-size:clamp(3rem,10vh,4.5rem);line-height:1}
+.sentence{font-family:var(--display);font-weight:800;font-size:1.9rem;line-height:1.6;margin:0}
+.blank{display:inline-block;min-width:120px;min-height:1.5em;vertical-align:middle;border:3px dashed var(--mist);border-radius:14px;
+  padding:0 12px;margin:0 4px;background:var(--sky);font:inherit;line-height:1.4}
+.blank.hot{border-color:var(--ink);background:#FFF3C9}
+.blank.ok{border-style:solid}
+.en{font-size:1.05rem;opacity:.75;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;min-height:70px}
+.chip{font-family:var(--display);font-weight:800;font-size:1.5rem;background:var(--sun);border:3px solid var(--ink);border-radius:18px;
+  padding:8px 18px;box-shadow:0 5px 0 var(--ink);touch-action:none;transition:transform .2s;position:relative}
+.chip.dragging{transition:none;z-index:10;box-shadow:0 12px 0 rgba(22,37,92,.25)}
+.chip.sel{background:var(--ink);color:var(--paper)}
+.listen{background:var(--sun);border:3px solid var(--ink);border-radius:999px;padding:6px 16px;font-weight:800;display:inline-flex;gap:8px;align-items:center}
+
+/* done */
+#done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
+#done h2{font-family:var(--display);font-weight:800;font-size:3.2rem;margin:0;line-height:1}
+.bigstars{font-family:var(--display);font-weight:800;font-size:3rem;overflow-wrap:anywhere;color:#E8A800}
+.btn{font-family:var(--display);font-weight:800;font-size:1.5rem;border:3px solid var(--ink);border-radius:20px;padding:10px 26px;box-shadow:0 5px 0 var(--ink);background:var(--sun)}
+.btn.alt{background:var(--paper)}
+.row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+@media (prefers-reduced-motion:reduce){.shake,.pop{animation:none}.plus{animation-duration:.01s}.chip{transition:none}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <section id="home">
+    <div class="brand">
+      <h1>Petit Français</h1>
+      <span class="flag" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="total" aria-label="Total points">★ <span id="total">0</span></span>
+    </div>
+    <button class="hello" id="hello">
+      <svg class="spk" style="font-size:2.2rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg>
+      <span><b>Bonjour !</b><small>Tap any yellow French word to hear it.</small></span>
+    </button>
+    <p class="note" id="voicenote" hidden>This device has no French voice installed, so words may sound wrong. Add French under your device's text-to-speech settings.</p>
+
+    <p class="label">Pick a level</p>
+    <div class="games" id="levels"></div>
+  </section>
+
+  <section id="game" hidden>
+    <div class="bar">
+      <button class="back" id="back">← Home</button>
+      <div class="meter" id="bar" aria-label="Progress"><i></i></div>
+      <span class="stars" id="pts" aria-label="Points this game">★ <span id="stars">0</span></span>
+    </div>
+    <div class="stage" id="stage"></div>
+    <div id="answers"></div>
+  </section>
+
+  <section id="done" hidden>
+    <h2>Bravo !</h2>
+    <div class="bigstars" id="bigstars"></div>
+    <p id="donetext" style="font-size:1.2rem;margin:0"></p>
+    <div class="row">
+      <button class="btn go" id="again">Next →</button>
+      <button class="btn alt" id="gohome">Home</button>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ---------- words: "french|english|picture" ---------- */
+/* sentences: picture, before, answer, after, English, group (answers in one group can stand in for each other as wrong choices) */
+const LEVELS = [
+ { themes: {
+    Animals: ["le chat|cat|🐱","le chien|dog|🐶","le cheval|horse|🐴","la vache|cow|🐮","le cochon|pig|🐷","le lapin|rabbit|🐰","l'oiseau|bird|🐦","le poisson|fish|🐟","la grenouille|frog|🐸","le canard|duck|🦆","la souris|mouse|🐭","le papillon|butterfly|🦋"],
+    Food: ["la pomme|apple|🍎","la banane|banana|🍌","le pain|bread|🍞","le fromage|cheese|🧀","le lait|milk|🥛","l'œuf|egg|🥚","le gâteau|cake|🎂","la fraise|strawberry|🍓","la carotte|carrot|🥕","la glace|ice cream|🍦","l'eau|water|💧","le poulet|chicken|🍗"],
+    Colours: ["rouge|red|#E5322D","bleu|blue|#2456D6","vert|green|#2FB34A","jaune|yellow|#FFD91A","orange|orange|#FF8A1F","rose|pink|#FF8FC4","violet|purple|#8B3FD9","noir|black|#111111","blanc|white|#FFFFFF","marron|brown|#8A5A2B"],
+    "My world": ["la maison|house|🏠","le soleil|sun|☀️","la lune|moon|🌙","l'étoile|star|⭐","l'arbre|tree|🌳","la fleur|flower|🌸","la voiture|car|🚗","le vélo|bike|🚲","le livre|book|📖","le ballon|ball|⚽","le chapeau|hat|🎩","la chaussure|shoe|👟","le lit|bed|🛏️","la pluie|rain|🌧️"],
+    "Numbers 1–10": ["un|one|1","deux|two|2","trois|three|3","quatre|four|4","cinq|five|5","six|six|6","sept|seven|7","huit|eight|8","neuf|nine|9","dix|ten|10"]
+   },
+   sentences: [
+    ["🐱🥛","","Le chat"," boit du lait.","The cat drinks milk.","s"],
+    ["🐶🌳","","Le chien"," court dans le jardin.","The dog runs in the garden.","s"],
+    ["☀️","","Le soleil"," brille.","The sun is shining.","s"],
+    ["🐟💧","","Le poisson"," nage dans l'eau.","The fish swims in the water.","s"],
+    ["🐦🎵","","L'oiseau"," chante.","The bird sings.","s"],
+    ["🚗","","La voiture"," roule vite.","The car goes fast.","s"],
+    ["🌙","","La lune"," est dans le ciel.","The moon is in the sky.","s"],
+    ["🐮","","La vache"," dit meuh.","The cow says moo.","s"],
+    ["🐸","","La grenouille"," saute.","The frog jumps.","s"],
+    ["🍎","Je mange ","une pomme",".","I eat an apple.","o"],
+    ["🥛","Je bois ","du lait",".","I drink milk.","o"],
+    ["📖","Je lis ","un livre",".","I read a book.","o"],
+    ["⚽","Je joue avec ","le ballon",".","I play with the ball.","o"],
+    ["🍞","Je mange ","du pain",".","I eat bread.","o"],
+    ["🦋","Je vois ","un papillon",".","I see a butterfly.","o"],
+    ["🎩","Je porte ","un chapeau",".","I wear a hat.","o"]
+   ]
+ },
+ { themes: {
+    "Wild animals": ["le lion|lion|🦁","l'éléphant|elephant|🐘","le singe|monkey|🐒","l'ours|bear|🐻","le loup|wolf|🐺","le renard|fox|🦊","la girafe|giraffe|🦒","le tigre|tiger|🐯","le serpent|snake|🐍","la tortue|turtle|🐢","la baleine|whale|🐋","le pingouin|penguin|🐧"],
+    "My body": ["la main|hand|✋","le pied|foot|🦶","l'œil|eye|👁️","le nez|nose|👃","la bouche|mouth|👄","l'oreille|ear|👂","la dent|tooth|🦷","le bras|arm|💪","la jambe|leg|🦵","le cœur|heart|❤️"],
+    Clothes: ["le pantalon|trousers|👖","la robe|dress|👗","le manteau|coat|🧥","la chaussette|sock|🧦","le tee-shirt|T-shirt|👕","les gants|gloves|🧤","l'écharpe|scarf|🧣","les lunettes|glasses|👓","la casquette|cap|🧢","la botte|boot|🥾"],
+    People: ["la maman|mum|👩","le papa|dad|👨","le bébé|baby|👶","la grand-mère|grandma|👵","le grand-père|grandpa|👴","le garçon|boy|👦","la fille|girl|👧","la famille|family|👪","le roi|king|🤴","la reine|queen|👸"],
+    "More food": ["la tomate|tomato|🍅","le citron|lemon|🍋","le raisin|grapes|🍇","la cerise|cherry|🍒","la poire|pear|🍐","le maïs|corn|🌽","le riz|rice|🍚","la soupe|soup|🍲","la sucette|lollipop|🍭","le chocolat|chocolate|🍫","le miel|honey|🍯","les frites|fries|🍟"]
+   },
+   sentences: [
+    ["🦁","","Le lion"," rugit.","The lion roars.","s"],
+    ["🐒🍌","","Le singe"," mange une banane.","The monkey eats a banana.","s"],
+    ["🐘","","L'éléphant"," est très grand.","The elephant is very big.","s"],
+    ["🐢","","La tortue"," marche lentement.","The turtle walks slowly.","s"],
+    ["👶😴","","Le bébé"," dort.","The baby is sleeping.","s"],
+    ["🐧❄️","","Le pingouin"," aime la neige.","The penguin likes the snow.","s"],
+    ["👵📖","","La grand-mère"," lit un livre.","Grandma reads a book.","s"],
+    ["🐍","","Le serpent"," est long.","The snake is long.","s"],
+    ["🧥","Je mets ","mon manteau",".","I put on my coat.","o"],
+    ["🧦","Je mets ","mes chaussettes",".","I put on my socks.","o"],
+    ["🦷","Je brosse ","mes dents",".","I brush my teeth.","o"],
+    ["✋💧","Je lave ","mes mains",".","I wash my hands.","o"],
+    ["🍫","J'aime ","le chocolat",".","I like chocolate.","o"],
+    ["🍒","Je mange ","des cerises",".","I eat cherries.","o"],
+    ["👗","Elle porte ","une robe",".","She wears a dress.","o"],
+    ["👓","Il porte ","des lunettes",".","He wears glasses.","o"]
+   ]
+ },
+ { themes: {
+    Outdoors: ["le nuage|cloud|☁️","la neige|snow|❄️","le vent|wind|💨","l'arc-en-ciel|rainbow|🌈","la montagne|mountain|⛰️","la mer|sea|🌊","le feu|fire|🔥","la feuille|leaf|🍃","le champignon|mushroom|🍄","l'orage|storm|⛈️","la plage|beach|🏖️","l'île|island|🏝️"],
+    "Things that go": ["l'avion|plane|✈️","le bateau|boat|⛵","le camion|truck|🚚","la fusée|rocket|🚀","le tracteur|tractor|🚜","la moto|motorbike|🏍️","l'hélicoptère|helicopter|🚁","le train|train|🚆","le bus|bus|🚌","la trottinette|scooter|🛴"],
+    "At home": ["la porte|door|🚪","la chaise|chair|🪑","la clé|key|🔑","le crayon|pencil|✏️","les ciseaux|scissors|✂️","l'horloge|clock|🕰️","le téléphone|phone|📱","le cadeau|present|🎁","le sac à dos|backpack|🎒","le savon|soap|🧼","la baignoire|bath|🛁","le parapluie|umbrella|☂️"],
+    Feelings: ["content|happy|😀","triste|sad|😢","fâché|angry|😠","fatigué|tired|😴","malade|sick|🤒","surpris|surprised|😲","effrayé|scared|😱","drôle|funny|🤪","froid|cold|🥶","chaud|hot|🥵"],
+    "Numbers 11–20": ["onze|eleven|11","douze|twelve|12","treize|thirteen|13","quatorze|fourteen|14","quinze|fifteen|15","seize|sixteen|16","dix-sept|seventeen|17","dix-huit|eighteen|18","dix-neuf|nineteen|19","vingt|twenty|20"]
+   },
+   sentences: [
+    ["🐦☁️","L'oiseau ","vole"," dans le ciel.","The bird flies in the sky.","v"],
+    ["🐟🌊","Le poisson ","nage"," dans la mer.","The fish swims in the sea.","v"],
+    ["🐸💧","La grenouille ","saute"," dans l'eau.","The frog jumps in the water.","v"],
+    ["👶🛏️","Le bébé ","dort"," dans son lit.","The baby sleeps in his bed.","v"],
+    ["👧🎵","La fille ","chante"," une chanson.","The girl sings a song.","v"],
+    ["👦⚽","Le garçon ","joue"," au ballon.","The boy plays ball.","v"],
+    ["🐶🦴","Le chien ","mange"," son os.","The dog eats his bone.","v"],
+    ["🐴💨","Le cheval ","court"," très vite.","The horse runs very fast.","v"],
+    ["🔥","Le feu est ","chaud",".","The fire is hot.","a"],
+    ["❄️","La neige est ","froide",".","The snow is cold.","a"],
+    ["🐘","L'éléphant est ","grand",".","The elephant is big.","a"],
+    ["🐭","La souris est ","petite",".","The mouse is small.","a"],
+    ["👦😢","Le garçon est ","triste",".","The boy is sad.","a"],
+    ["👧😀","La fille est ","contente",".","The girl is happy.","a"],
+    ["🍋","Le citron est ","jaune",".","The lemon is yellow.","a"],
+    ["🌳","L'arbre est ","vert",".","The tree is green.","a"]
+   ]
+ }
+ ,
+ { themes: {
+    "Play time": ["le robot|robot|🤖","le cerf-volant|kite|🪁","le puzzle|puzzle|🧩","les dés|dice|🎲","le tambour|drum|🥁","la guitare|guitar|🎸","la trompette|trumpet|🎺","le violon|violin|🎻","le nounours|teddy bear|🧸","la peinture|paint|🎨","les patins|skates|⛸️","le jeu vidéo|video game|🎮"],
+    "Farm and garden": ["le mouton|sheep|🐑","la chèvre|goat|🐐","la poule|hen|🐔","le coq|rooster|🐓","la dinde|turkey|🦃","l'abeille|bee|🐝","la coccinelle|ladybird|🐞","l'escargot|snail|🐌","la fourmi|ant|🐜","l'araignée|spider|🕷️","le hérisson|hedgehog|🦔","l'écureuil|squirrel|🐿️"],
+    "By the water": ["le requin|shark|🦈","le dauphin|dolphin|🐬","la pieuvre|octopus|🐙","le crabe|crab|🦀","la crevette|shrimp|🦐","le coquillage|shell|🐚","le homard|lobster|🦞","le crocodile|crocodile|🐊","le cygne|swan|🦢","le flamant rose|flamingo|🦩"],
+    "Fruit and veg": ["l'orange|orange|🍊","la pêche|peach|🍑","l'ananas|pineapple|🍍","la pastèque|watermelon|🍉","la noix de coco|coconut|🥥","l'avocat|avocado|🥑","le brocoli|broccoli|🥦","le concombre|cucumber|🥒","la pomme de terre|potato|🥔","l'oignon|onion|🧅","la salade|salad|🥗","la mangue|mango|🥭"],
+    "Snack time": ["le thé|tea|🍵","le café|coffee|☕","le biscuit|cookie|🍪","le croissant|croissant|🥐","la crêpe|pancake|🥞","le beignet|doughnut|🍩","les pâtes|pasta|🍝","le sel|salt|🧂","la baguette|baguette|🥖","la tarte|pie|🥧"]
+   },
+   sentences: [
+    ["🐝🌸","","L'abeille"," aime les fleurs.","The bee likes flowers.","s"],
+    ["🐔🥚","","La poule"," pond un œuf.","The hen lays an egg.","s"],
+    ["🐌","","L'escargot"," avance lentement.","The snail moves slowly.","s"],
+    ["🦈🌊","","Le requin"," nage dans la mer.","The shark swims in the sea.","s"],
+    ["🐿️🌳","","L'écureuil"," grimpe dans l'arbre.","The squirrel climbs the tree.","s"],
+    ["🕷️","","L'araignée"," a huit pattes.","The spider has eight legs.","s"],
+    ["🤖","","Le robot"," parle.","The robot talks.","s"],
+    ["🐬💦","","Le dauphin"," saute dans l'eau.","The dolphin jumps in the water.","s"],
+    ["🎸","Je joue ","de la guitare",".","I play the guitar.","m"],
+    ["🥁","Je joue ","du tambour",".","I play the drum.","m"],
+    ["🎻","Je joue ","du violon",".","I play the violin.","m"],
+    ["🎺","Je joue ","de la trompette",".","I play the trumpet.","m"],
+    ["🥐","Je mange ","un croissant",".","I eat a croissant.","o"],
+    ["🍉","Je mange ","de la pastèque",".","I eat watermelon.","o"],
+    ["☕","Maman boit ","un café",".","Mum drinks a coffee.","o"],
+    ["🧸","Je dors avec ","mon nounours",".","I sleep with my teddy bear.","o"],
+    ["🎨","Je fais ","de la peinture",".","I am painting.","o"],
+    ["🥖","J'achète ","une baguette",".","I buy a baguette.","o"]
+   ]
+ },
+ { themes: {
+    Jobs: ["le docteur|doctor|👨‍⚕️","le pompier|firefighter|👨‍🚒","le policier|police officer|👮","le cuisinier|cook|👨‍🍳","le fermier|farmer|👨‍🌾","l'astronaute|astronaut|👨‍🚀","le professeur|teacher|👩‍🏫","le pilote|pilot|👨‍✈️","l'artiste|artist|👩‍🎨","le clown|clown|🤡"],
+    "Around town": ["l'école|school|🏫","l'hôpital|hospital|🏥","le château|castle|🏰","l'église|church|⛪","le pont|bridge|🌉","le magasin|shop|🏪","l'hôtel|hotel|🏨","l'usine|factory|🏭","la tente|tent|⛺","le cirque|circus|🎪","la fontaine|fountain|⛲","la ville|city|🏙️"],
+    "Useful things": ["le marteau|hammer|🔨","la cuillère|spoon|🥄","le couteau|knife|🔪","la bougie|candle|🕯️","la boîte|box|📦","la lettre|letter|✉️","le journal|newspaper|📰","la loupe|magnifying glass|🔍","la cloche|bell|🔔","l'ampoule|light bulb|💡","l'ordinateur|computer|💻","l'appareil photo|camera|📷"],
+    "Earth and space": ["la Terre|Earth|🌍","la planète|planet|🪐","la comète|comet|☄️","l'extraterrestre|alien|👽","le satellite|satellite|🛰️","l'éclair|lightning|⚡","la tornade|tornado|🌪️","le volcan|volcano|🌋","le désert|desert|🏜️","la forêt|forest|🌲"],
+    "Big numbers": ["zéro|zero|0","trente|thirty|30","quarante|forty|40","cinquante|fifty|50","soixante|sixty|60","soixante-dix|seventy|70","quatre-vingts|eighty|80","quatre-vingt-dix|ninety|90","cent|one hundred|100","mille|one thousand|1000"]
+   },
+   sentences: [
+    ["👨‍🚒🔥","","Le pompier"," éteint le feu.","The firefighter puts out the fire.","s"],
+    ["👨‍🍳","","Le cuisinier"," prépare le repas.","The cook makes the meal.","s"],
+    ["👨‍⚕️","","Le docteur"," soigne les malades.","The doctor looks after sick people.","s"],
+    ["👨‍🚀🚀","","L'astronaute"," va dans l'espace.","The astronaut goes into space.","s"],
+    ["👨‍🌾🚜","","Le fermier"," conduit le tracteur.","The farmer drives the tractor.","s"],
+    ["🤡","","Le clown"," est drôle.","The clown is funny.","s"],
+    ["🏫","Je vais à ","l'école",".","I go to school.","l"],
+    ["🏥","Le docteur travaille à ","l'hôpital",".","The doctor works at the hospital.","l"],
+    ["🏰","Le roi habite dans ","le château",".","The king lives in the castle.","l"],
+    ["⛺","Je dors dans ","la tente",".","I sleep in the tent.","l"],
+    ["🎪","Le clown travaille dans ","le cirque",".","The clown works in the circus.","l"],
+    ["🌲🐺","Le loup habite dans ","la forêt",".","The wolf lives in the forest.","l"],
+    ["🥄","Je mange avec ","une cuillère",".","I eat with a spoon.","o"],
+    ["✉️","J'écris ","une lettre",".","I write a letter.","o"],
+    ["📷","Je prends une photo avec ","l'appareil photo",".","I take a photo with the camera.","o"],
+    ["🕯️","J'allume ","la bougie",".","I light the candle.","o"],
+    ["💻","Papa travaille sur ","l'ordinateur",".","Dad works on the computer.","o"],
+    ["🔔","J'entends ","la cloche",".","I hear the bell.","o"]
+   ]
+ },
+ { themes: {
+    "Story land": ["le dragon|dragon|🐉","la licorne|unicorn|🦄","la fée|fairy|🧚","le fantôme|ghost|👻","la sorcière|witch|🧙‍♀️","le dinosaure|dinosaur|🦖","la sirène|mermaid|🧜‍♀️","la couronne|crown|👑","l'épée|sword|🗡️","le monstre|monster|👹","le vampire|vampire|🧛","le lutin|elf|🧝"],
+    "Party time": ["le sapin|Christmas tree|🎄","le père Noël|Santa|🎅","le bonhomme de neige|snowman|⛄","la citrouille|pumpkin|🎃","le feu d'artifice|fireworks|🎆","la fête|party|🎉","le drapeau|flag|🚩","le ruban|ribbon|🎀","le trophée|trophy|🏆","la musique|music|🎵"],
+    "Zoo animals": ["le zèbre|zebra|🦓","le kangourou|kangaroo|🦘","le chameau|camel|🐫","le hibou|owl|🦉","l'aigle|eagle|🦅","le perroquet|parrot|🦜","la chauve-souris|bat|🦇","le paon|peacock|🦚","le gorille|gorilla|🦍","le rhinocéros|rhino|🦏","le cerf|deer|🦌","l'hippopotame|hippo|🦛"],
+    "Action words": ["courir|to run|🏃","nager|to swim|🏊","danser|to dance|💃","marcher|to walk|🚶","chanter|to sing|🎤","écrire|to write|✍️","grimper|to climb|🧗","pleurer|to cry|😭","rire|to laugh|😂","dormir|to sleep|🛌","applaudir|to clap|👏","pêcher|to fish|🎣"],
+    "Kind words": ["bonjour|hello|👋","merci|thank you|🙏","oui|yes|✅","non|no|❌","je t'aime|I love you|😍","bonne nuit|good night|🌜","s'il te plaît|please|🥺","bon appétit|enjoy your meal|🍴","joyeux anniversaire|happy birthday|🥳","chut|shh|🤫"]
+   },
+   sentences: [
+    ["🏃","Le garçon ","court"," dans le parc.","The boy runs in the park.","v"],
+    ["💃","La fille ","danse"," avec sa maman.","The girl dances with her mum.","v"],
+    ["🏊","Papa ","nage"," dans la piscine.","Dad swims in the pool.","v"],
+    ["👶😭","Le bébé ","pleure",".","The baby is crying.","v"],
+    ["😂","Maman ","rit",".","Mum is laughing.","v"],
+    ["✍️","La fille ","écrit"," une lettre.","The girl writes a letter.","v"],
+    ["🧗","Le garçon ","grimpe"," sur le mur.","The boy climbs the wall.","v"],
+    ["🎣🐟","Papa ","pêche"," un poisson.","Dad catches a fish.","v"],
+    ["🐉🔥","","Le dragon"," crache du feu.","The dragon breathes fire.","s"],
+    ["🦄✨","","La licorne"," est magique.","The unicorn is magic.","s"],
+    ["👻","","Le fantôme"," fait peur.","The ghost is scary.","s"],
+    ["🦉☀️","","Le hibou"," dort le jour.","The owl sleeps in the day.","s"],
+    ["🦘","","Le kangourou"," saute très haut.","The kangaroo jumps very high.","s"],
+    ["🎅🎁","","Le père Noël"," apporte des cadeaux.","Santa brings presents.","s"],
+    ["🦇🌙","","La chauve-souris"," vole la nuit.","The bat flies at night.","s"],
+    ["⛄☀️","","Le bonhomme de neige"," fond au soleil.","The snowman melts in the sun.","s"],
+    ["👋","","Bonjour",", comment ça va ?","Hello, how are you?","q"],
+    ["🙏","","Merci"," beaucoup !","Thank you very much!","q"],
+    ["🌜","","Bonne nuit",", maman !","Good night, Mum!","q"],
+    ["🎂","","Joyeux anniversaire",", papa !","Happy birthday, Dad!","q"]
+   ]
+ }
+];
+
+const $ = s => document.querySelector(s);
+const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
+const items = t => LEVELS[level].themes[t].map((s,i)=>{ const [fr,en,p]=s.split("|"); return {id:i,fr,en,p}; });
+const pic = it => it.p[0]==="#" ? `<span class="swatch" style="background:${it.p}"></span>`
+                 : /^\d/.test(it.p) ? `<span class="num">${it.p}</span>` : `<span>${it.p}</span>`;
+const SPK = '<svg class="spk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg>';
+
+/* ---------- speech ---------- */
+const native = window.AndroidTTS || null;   /* the tablet app's own voice */
+const synth = window.speechSynthesis;
+let voices = [];
+function loadVoices(){ try{ voices = synth.getVoices(); }catch(e){} }
+function voiceFor(lang){
+  const base = lang.slice(0,2);
+  const pool = voices.filter(v => v.lang && v.lang.replace("_","-").toLowerCase().startsWith(base));
+  return pool.find(v => v.lang.replace("_","-").toLowerCase()===lang.toLowerCase() && v.localService)
+      || pool.find(v => v.lang.replace("_","-").toLowerCase()===lang.toLowerCase())
+      || pool[0] || null;
+}
+let keep = null;
+function speakNow(text, lang, retry){
+  try{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    const v = retry ? null : voiceFor(lang); if(v) u.voice = v;
+    u.rate = lang==="fr-FR" ? 0.8 : 0.9;
+    u.onerror = e => { if(!retry && e.error!=="interrupted" && e.error!=="canceled") setTimeout(()=> speakNow(text, lang, true), 200); };
+    keep = u;
+    if(synth.paused) synth.resume();
+    synth.speak(u);
+  }catch(e){}
+}
+function say(text, lang="fr-FR"){
+  if(native){ try{ native.speak(text, lang); }catch(e){} return; }
+  if(!synth) return;
+  try{
+    if(synth.speaking || synth.pending){ synth.cancel(); setTimeout(()=> speakNow(text, lang), 80); }
+    else speakNow(text, lang);
+  }catch(e){}
+}
+if(native){
+  let tries = 0;
+  const check = () => {
+    let ok = false, up = false;
+    try{ up = native.isReady(); ok = up && native.hasVoice("fr-FR"); }catch(e){}
+    if(!up && ++tries < 10) return setTimeout(check, 500);
+    if(!ok){ $("#voicenote").hidden = false; $("#voicenote").textContent = "The French voice is missing on this tablet. Open Settings, search for Text-to-speech, and install French."; }
+  };
+  setTimeout(check, 800);
+} else if(synth){
+  loadVoices();
+  try{ synth.addEventListener("voiceschanged", loadVoices); }catch(e){}
+  setTimeout(()=>{ loadVoices(); if(voices.length && !voiceFor("fr-FR")) $("#voicenote").hidden=false; }, 1500);
+} else { $("#voicenote").hidden=false; $("#voicenote").textContent="This browser cannot read words aloud. Try opening the page in Safari or Chrome."; }
+
+/* ---------- state ---------- */
+const PARTS = 8;
+let level = 0, theme = "", cur = 0, lessons = [], queue = [], qi = 0, stars = 0, first = true, timer = null;
+let total = 0, prog = LEVELS.map(()=>0);
+try{
+  total = +localStorage.getItem("pf-points") || 0;
+  const p = JSON.parse(localStorage.getItem("pf-prog") || "[]");
+  prog = prog.map((_,i)=> Math.min(PARTS, Math.max(0, +p[i] || 0)));
+}catch(e){}
+
+function show(id){ ["home","game","done"].forEach(v => $("#"+v).hidden = v!==id); }
+function addStar(){
+  const n = first ? 10 : 5; stars += n; total += n;
+  $("#stars").textContent = stars; $("#total").textContent = total;
+  try{ localStorage.setItem("pf-points", total); }catch(e){}
+  const box = $("#pts"); box.classList.remove("pop"); void box.offsetWidth; box.classList.add("pop");
+  const f = document.createElement("span"); f.className = "plus"; f.textContent = "+" + n; box.appendChild(f);
+  setTimeout(()=> f.remove(), 900);
+}
+function later(fn, ms){ clearTimeout(timer); timer = setTimeout(fn, ms); }
+function go(){ clearTimeout(timer); qi++; next(); }
+function nextButton(){
+  const a = $("#answers"); a.className = "chips"; a.onclick = null;
+  a.innerHTML = '<button class="btn go" id="nextbtn">Next →</button>';
+  $("#nextbtn").addEventListener("click", go);
+}
+
+/* ---------- a level is 8 parts: word sets with sentence parts in between ---------- */
+function lessonsFor(l){
+  const L = LEVELS[l], names = Object.keys(L.themes), c = Math.ceil(L.sentences.length/3);
+  const W = i => ({type:"words", theme:names[i]});
+  const S = i => ({type:"sentences", list:L.sentences.slice(i*c,(i+1)*c)});
+  return [W(0),W(1),S(0),W(2),W(3),S(1),W(4),S(2)];
+}
+function chunks(arr){
+  const n = Math.ceil(arr.length/4), out = []; let i = 0;
+  for(let k=0;k<n;k++){ const size = Math.ceil((arr.length-i)/(n-k)); out.push(arr.slice(i,i+size)); i += size; }
+  return out;
+}
+
+/* ---------- home ---------- */
+function drawHome(){
+  $("#total").textContent = total;
+  $("#levels").innerHTML = LEVELS.map((L,i)=>{
+    const d = prog[i];
+    const text = d>=PARTS ? "Finished. Tap to play again." : d ? `Part ${d+1} of ${PARTS}` : "Tap to start";
+    return `<button class="game g${i%3+1}" data-l="${i}"><span class="ico num">${i+1}</span><span class="grow"><b>Level ${i+1}</b><span class="d">${text}</span><span class="meter"><i style="width:${d/PARTS*100}%"></i></span></span></button>`;
+  }).join("");
+}
+drawHome();
+$("#levels").addEventListener("click", e=>{ const b=e.target.closest(".game"); if(b) startLevel(+b.dataset.l); });
+$("#hello").addEventListener("click", ()=> say("Bonjour !"));
+$("#back").addEventListener("click", home);
+$("#gohome").addEventListener("click", home);
+$("#again").addEventListener("click", ()=>{ if(cur < PARTS) startLesson(); else if(level < LEVELS.length-1) startLevel(level+1); else home(); });
+function home(){ clearTimeout(timer); try{ native ? native.stop() : synth && synth.cancel(); }catch(e){} drawHome(); show("home"); }
+
+function startLevel(l){
+  level = l; lessons = lessonsFor(l);
+  cur = prog[l] >= PARTS ? 0 : prog[l];
+  startLesson();
+}
+function startLesson(){
+  const L = lessons[cur]; queue = [];
+  if(L.type==="words"){
+    theme = L.theme;
+    chunks(shuffle(items(theme))).forEach(set=>{
+      set.forEach(item => queue.push({k:"listen", item}));
+      queue.push({k:"match", set});
+    });
+  } else {
+    shuffle(L.list).forEach(s => queue.push({k:"sentence", s}));
+  }
+  qi = 0; stars = 0; $("#stars").textContent = 0;
+  show("game"); next();
+}
+function next(){
+  clearTimeout(timer);
+  if(qi >= queue.length) return finish();
+  first = true;
+  $("#bar").firstElementChild.style.width = (qi/queue.length*100) + "%";
+  $("#stage").onclick = null; const a = $("#answers"); a.onclick = null; delete a.dataset.lock;
+  const step = queue[qi];
+  if(step.k==="listen") qListen(step.item);
+  else if(step.k==="match") qMatch(step.set);
+  else qSentence(step.s);
+}
+function finish(){
+  cur++;
+  if(cur > prog[level]){ prog[level] = cur; try{ localStorage.setItem("pf-prog", JSON.stringify(prog)); }catch(e){} }
+  const levelDone = cur >= PARTS, last = level >= LEVELS.length-1;
+  $("#bigstars").textContent = "★ " + stars;
+  $("#donetext").textContent = levelDone ? `Level ${level+1} finished! You won ${stars} points.` : `Part ${cur} of ${PARTS} done. You won ${stars} points.`;
+  $("#again").textContent = levelDone ? (last ? "Home" : `Level ${level+2} →`) : "Next →";
+  $("#gohome").hidden = levelDone && last;
+  show("done"); say("Bravo !");
+}
+
+/* ---------- hear the word, find the picture ---------- */
+function qListen(target){
+  const opts = shuffle([target, ...shuffle(items(theme).filter(i=>i.id!==target.id)).slice(0,3)]);
+  $("#stage").innerHTML = `<p class="hint">Which picture is it?</p><button class="fr" id="word">${SPK}<span>${target.fr}</span></button>`;
+  $("#word").addEventListener("click", ()=> say(target.fr));
+  const a = $("#answers"); a.className = "answers pics";
+  a.innerHTML = opts.map(o=>`<button class="card" data-id="${o.id}" aria-label="${o.en}">${pic(o)}</button>`).join("");
+  a.onclick = e => {
+    const c = e.target.closest(".card"); if(!c || a.dataset.lock) return;
+    if(+c.dataset.id === target.id){
+      a.dataset.lock = "1"; c.classList.add("ok","pop"); addStar(); say("Oui ! " + target.fr);
+      later(go, 1400);
+    } else { first = false; c.classList.add("shake"); setTimeout(()=>c.classList.add("gone"), 400); }
+  };
+  const mine = qi;
+  if(qi===0) say(target.fr);
+  else setTimeout(()=>{ if(qi===mine && !$("#game").hidden && !a.dataset.lock) say(target.fr); }, 350);
+}
+
+/* ---------- match French and English ---------- */
+function qMatch(set){
+  $("#stage").innerHTML = `<p class="hint">Tap a French word, then its English friend.</p>
+    <div class="match"><div class="col"><p class="colhead">Français</p>${shuffle(set).map(o=>`<button class="tile f" data-id="${o.id}" data-side="f">${o.fr}</button>`).join("")}</div>
+    <div class="col"><p class="colhead">English</p>${shuffle(set).map(o=>`<button class="tile e" data-id="${o.id}" data-side="e">${o.en}</button>`).join("")}</div></div>`;
+  const a = $("#answers"); a.className = ""; a.innerHTML = "";
+  let pickF = null, pickE = null, left = set.length; const missed = new Set(); const mine = qi;
+  $("#stage").onclick = e => {
+    const t = e.target.closest(".tile"); if(!t || t.classList.contains("ok")) return;
+    const it = set.find(o=>o.id===+t.dataset.id);
+    if(t.dataset.side==="f"){ say(it.fr); pickF && pickF.classList.remove("sel"); pickF = t; }
+    else { say(it.en, "en-GB"); pickE && pickE.classList.remove("sel"); pickE = t; }
+    t.classList.add("sel");
+    if(!pickF || !pickE) return;
+    const f = pickF, en = pickE; pickF = pickE = null;
+    f.classList.remove("sel"); en.classList.remove("sel");
+    if(f.dataset.id === en.dataset.id){
+      [f,en].forEach(x=>x.classList.add("ok","pop"));
+      en.insertAdjacentHTML("afterbegin", pic(it));
+      first = !missed.has(it.id); addStar();
+      setTimeout(()=>{ if(qi===mine && !$("#game").hidden) say(it.fr); }, 700);
+      if(--left===0){ $("#stage").onclick = null; nextButton(); }
+    } else {
+      missed.add(+f.dataset.id);
+      [f,en].forEach(x=>{ x.classList.remove("shake"); void x.offsetWidth; x.classList.add("shake"); });
+    }
+  };
+}
+
+/* ---------- drag the word into the sentence ---------- */
+function qSentence(s){
+  const [scene, before, answer, after, en, group] = s;
+  const others = shuffle(LEVELS[level].sentences.filter(x=>x[5]===group && x[2]!==answer)).slice(0,2).map(x=>x[2]);
+  const opts = shuffle([answer, ...others]);
+  $("#stage").innerHTML = `<div class="scene">${scene}</div>
+    <p class="sentence">${before}<button class="blank" id="blank" aria-label="Empty space for the missing word"></button>${after}</p>
+    <p class="en">${en}</p><div id="after"></div>`;
+  const a = $("#answers"); a.className = "chips";
+  a.innerHTML = opts.map(o=>`<button class="chip" data-w="${o}">${o}</button>`).join("");
+  const blank = $("#blank"); let sel = null, done = false;
+  const over = (x,y) => { const r = blank.getBoundingClientRect(), p = 34; return x>r.left-p && x<r.right+p && y>r.top-p && y<r.bottom+p; };
+  function tryWord(chip){
+    if(done) return;
+    if(chip.dataset.w === answer){
+      done = true; blank.textContent = answer; blank.classList.add("ok","pop"); blank.classList.remove("hot");
+      addStar(); const full = before + answer + after; say(full);
+      $("#after").innerHTML = `<button class="listen" id="relisten">${SPK} Hear it again</button>`;
+      $("#relisten").addEventListener("click", ()=> say(full));
+      nextButton();
+    } else {
+      first = false; chip.classList.remove("sel","shake"); void chip.offsetWidth; chip.classList.add("shake"); sel = null;
+    }
+  }
+  blank.addEventListener("click", ()=>{ if(sel) tryWord(sel); });
+  a.querySelectorAll(".chip").forEach(chip=>{
+    let sx=0, sy=0, drag=false, pid=null;
+    const reset = () => { pid=null; drag=false; chip.classList.remove("dragging"); chip.style.transform=""; blank.classList.remove("hot"); };
+    const tap = () => { if(done) return; say(chip.dataset.w); a.querySelectorAll(".chip").forEach(c=>c.classList.remove("sel")); chip.classList.add("sel"); sel = chip; };
+    chip.addEventListener("pointerdown", e=>{ if(done) return; pid=e.pointerId; sx=e.clientX; sy=e.clientY; drag=false; try{chip.setPointerCapture(pid);}catch(_){} });
+    chip.addEventListener("pointermove", e=>{
+      if(e.pointerId!==pid) return;
+      const dx=e.clientX-sx, dy=e.clientY-sy;
+      if(!drag && Math.hypot(dx,dy)>8){ drag=true; chip.classList.add("dragging"); }
+      if(drag){ chip.style.transform=`translate(${dx}px,${dy}px) scale(1.08)`; blank.classList.toggle("hot", over(e.clientX,e.clientY)); }
+    });
+    chip.addEventListener("pointerup", e=>{
+      if(e.pointerId!==pid) return;
+      const wasDrag = drag, x = e.clientX, y = e.clientY; reset();
+      if(wasDrag){ if(over(x,y)) tryWord(chip); } else tap();
+    });
+    chip.addEventListener("pointercancel", reset);
+    chip.addEventListener("lostpointercapture", ()=>{ if(pid!==null) reset(); });
+    chip.addEventListener("click", e=>{ if(e.detail===0) tap(); });
+  });
+}
+</script>
+</body>
+</html>
