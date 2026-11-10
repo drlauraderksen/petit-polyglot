@@ -198,6 +198,7 @@ h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;mar
       <span><b id="hellow"></b><small id="hellos"></small></span>
     </button>
     <p class="note" id="voicenote" hidden></p>
+    <button class="game g2" id="practice" hidden><span class="ico">🔁</span><span class="grow"><b id="practicet"></b><span class="d" id="practiced"></span></span></button>
     <p class="label" id="lbl"></p>
     <div class="tiles" id="levels"></div>
   </section>
@@ -743,17 +744,17 @@ const LANG = {
 const OWN = {fr:"Français", en:"English", nb:"Norsk"};
 const UI = {
   en:{ theme:"Pick a theme", which:"Which picture is it?", hear:"Hear the sentence", next:"Next →", home:"Home", back:"← Home",
-       tap:"Tap any yellow word to hear it.", learn:"What do you want to learn?", lang:{fr:"French", en:"English", nb:"Norwegian"},
+       tap:"Tap any yellow word to hear it.", practice:"Practise my words", pcount:n=>`${n} words learned so far`, pdone:n=>`Practice done! You won ${n} points.`, learn:"What do you want to learn?", lang:{fr:"French", en:"English", nb:"Norwegian"},
        match:t=>`Tap a ${t} word, then its English friend.`,
        done:(t,n)=>`You finished ${t}! You won ${n} points.`,
        novoice:l=>`The ${l} voice is missing on this tablet. Open Settings, search for Text-to-speech, and install ${l}.` },
   fr:{ theme:"Choisis un thème", which:"C'est quelle image ?", hear:"Écouter la phrase", next:"Suivant →", home:"Accueil", back:"← Accueil",
-       tap:"Touche un mot jaune pour l'écouter.", learn:"Que veux-tu apprendre ?", lang:{fr:"français", en:"anglais", nb:"norvégien"},
+       tap:"Touche un mot jaune pour l'écouter.", practice:"Réviser mes mots", pcount:n=>`${n} mots appris`, pdone:n=>`Révision finie ! Tu as gagné ${n} points.`, learn:"Que veux-tu apprendre ?", lang:{fr:"français", en:"anglais", nb:"norvégien"},
        match:t=>`Touche un mot en ${t}, puis son ami en français.`,
        done:(t,n)=>`Tu as fini « ${t} » ! Tu as gagné ${n} points.`,
        novoice:l=>`La voix pour la langue « ${l} » manque sur cette tablette. Ouvre les Paramètres, cherche « Synthèse vocale » et installe la langue.` },
   nb:{ theme:"Velg et tema", which:"Hvilket bilde er det?", hear:"Hør setningen", next:"Neste →", home:"Hjem", back:"← Hjem",
-       tap:"Trykk på et gult ord for å høre det.", learn:"Hva vil du lære?", lang:{fr:"fransk", en:"engelsk", nb:"norsk"},
+       tap:"Trykk på et gult ord for å høre det.", practice:"Øv på ordene mine", pcount:n=>`${n} ord lært så langt`, pdone:n=>`Ferdig med øvingen! Du fikk ${n} poeng.`, learn:"Hva vil du lære?", lang:{fr:"fransk", en:"engelsk", nb:"norsk"},
        match:t=>`Trykk på et ord på ${t}, og så vennen på norsk.`,
        done:(t,n)=>`Du er ferdig med «${t}»! Du fikk ${n} poeng.`,
        novoice:l=>`Stemmen for ${l} mangler på dette nettbrettet. Åpne Innstillinger, søk etter «Tekst-til-tale» og installer språket.` }
@@ -780,15 +781,16 @@ function frIndef(fr){
 /* Each time a theme is played, a countable word shows up either as "the" or as "a", and both
    languages on screen always agree: "le chat / the cat / katten" or "un chat / a cat / en katt".
    Words with no article in Norwegian (melk, mamma, tennis) are the uncountable ones and never switch. */
-const items = t => {
-  const L = LEVELS[level], k = Object.keys(L.themes).indexOf(t), hasNb = (C.t + C.n).includes("nb");
-  return L.themes[t].map((s,i)=>{ const [fr,en,p] = s.split("|"), nb = NB[level][k][i];
-    const art = /^(en|et) /.test(nb), def = art ? (NBD[level][k] || [])[i] : "";
-    if(!art) return {id:i, fr, en:enWith(en, hasNb ? nb : fr), p, nb};
-    if((def || !hasNb) && Math.random() < 0.5)
-      return {id:i, fr, en:NO_THE.has(en) ? en : "the " + en, p, nb:def || nb};
-    return {id:i, fr:frIndef(fr), en:enWith(en, nb), p, nb}; });
-};
+function makeItem(li, k, i){
+  const L = LEVELS[li], name = Object.keys(L.themes)[k], hasNb = (C.t + C.n).includes("nb");
+  const [fr,en,p] = L.themes[name][i].split("|"), nb = NB[li][k][i], id = `${li}.${k}.${i}`;
+  const art = /^(en|et) /.test(nb), def = art ? (NBD[li][k] || [])[i] : "";
+  if(!art) return {id, fr, en:enWith(en, hasNb ? nb : fr), p, nb};
+  if((def || !hasNb) && Math.random() < 0.5)
+    return {id, fr, en:NO_THE.has(en) ? en : "the " + en, p, nb:def || nb};
+  return {id, fr:frIndef(fr), en:enWith(en, nb), p, nb};
+}
+const items = t => { const k = Object.keys(LEVELS[level].themes).indexOf(t); return LEVELS[level].themes[t].map((_,i)=> makeItem(level, k, i)); };
 /* English gets the same kind of article as the word it is paired with: "la lune" -> "the moon", "en måne" -> "a moon" */
 const NO_A = new Set(["scissors","trousers","glasses","gloves","grapes","fries","skates","dice","broccoli","Earth","lightning","shorts"]);
 const NO_THE = new Set(["Santa","chess","pool","football","basketball","tennis","rugby","skiing","golf","hockey","judo","boxing","surfing","bowling","table tennis"]);
@@ -899,6 +901,14 @@ function sent(li, si){
 
 let level = 0, theme = "", ti = 0, queue = [], qi = 0, stars = 0, first = true, timer = null;
 let total = 0, done = {};
+/* every word the player has met: s = how well it is known (0 to 5), d = the day it was last seen */
+let W = {}, practice = false, pool = [];
+function mark(item, ok){
+  const w = W[item.id] || {s:0, d:0};
+  w.s = ok ? Math.min(5, w.s + 1) : 0; w.d = Math.floor(Date.now() / 864e5);
+  W[item.id] = w;
+  try{ localStorage.setItem(key("words"), JSON.stringify(W)); }catch(e){}
+}
 const key = k => `pp-${me.id}-${k}-${store(cid)}`;   /* each player keeps separate points and stars for each course */
 
 function show(id){ ["who","edit","native","pick","home","game","done"].forEach(v => $("#"+v).hidden = v!==id); }
@@ -1003,7 +1013,7 @@ $("#pdel").addEventListener("click", ()=>{
   if(!del.dataset.armed){ del.dataset.armed = "1"; del.textContent = "Really? · Vraiment ? · Sikker?"; return; }   /* second tap deletes */
   const id = editing.id;
   profiles = profiles.filter(p => p.id!==id); saveProfiles();
-  try{ ALL_COURSES.forEach(c => ["points","themes"].forEach(k => localStorage.removeItem(`pp-${id}-${k}-${store(c)}`))); }catch(e){}
+  try{ ALL_COURSES.forEach(c => ["points","themes","words"].forEach(k => localStorage.removeItem(`pp-${id}-${k}-${store(c)}`))); }catch(e){}
   if(me && me.id===id) me = null;
   profiles.length ? goWho() : openEdit(null);
 });
@@ -1018,8 +1028,9 @@ $("#mylang").addEventListener("click", ()=> show("native"));
 $("#courses").addEventListener("click", e=>{ const b=e.target.closest(".game"); if(b) selectCourse(b.dataset.c); });
 function selectCourse(t){
   C = course(t, me.native); cid = t + "_" + me.native; U = UI[C.n];
-  total = 0; done = {};
+  total = 0; done = {}; W = {};
   try{
+    W = JSON.parse(localStorage.getItem(key("words")) || "{}") || {};
     total = +localStorage.getItem(key("points")) || 0;
     done = JSON.parse(localStorage.getItem(key("themes")) || "{}") || {};
   }catch(e){}
@@ -1034,6 +1045,8 @@ function selectCourse(t){
 /* ---------- theme page: one tile per theme ---------- */
 function drawHome(){
   $("#total").textContent = total;
+  const known = Object.keys(W).length;
+  $("#practice").hidden = known < 4; $("#practicet").textContent = U.practice; $("#practiced").textContent = U.pcount(known);
   $("#levels").innerHTML = THEMES.map((T,i)=>
     `<button class="tile2 g${i%3+1}" data-i="${i}"><span class="tpic">${pic({p:T.first})}</span><b>${themeName(i)}</b>${done[T.name] ? '<span class="tick">★</span>' : ""}</button>`
   ).join("");
@@ -1043,7 +1056,8 @@ $("#hello").addEventListener("click", ()=> say(C.hello));
 $("#change").addEventListener("click", goPick);
 $("#back").addEventListener("click", home);
 $("#gohome").addEventListener("click", home);
-$("#again").addEventListener("click", ()=>{ if(ti < THEMES.length-1) startTheme(ti+1); else home(); });
+$("#again").addEventListener("click", ()=>{ if(!practice && ti < THEMES.length-1) startTheme(ti+1); else home(); });
+$("#practice").addEventListener("click", startPractice);
 function home(){ clearTimeout(timer); stopSpeech(); drawHome(); show("home"); }
 /* the tablet's back button: exercise -> themes -> language choice -> players -> leave the app */
 window.goBack = function(){
@@ -1056,8 +1070,8 @@ window.goBack = function(){
 
 /* a theme runs: hear about four words, match those words, repeat, then its sentences */
 function startTheme(i){
-  ti = i; const T = THEMES[i]; level = T.level; theme = T.name; queue = [];
-  const its = shuffle(items(theme));
+  ti = i; const T = THEMES[i]; level = T.level; theme = T.name; queue = []; practice = false;
+  const its = shuffle(items(theme)); pool = its;
   if(its.some(x => x.p)) chunks(its).forEach(set=>{
     set.forEach(item => queue.push({k:"listen", item}));
     queue.push({k:"match", set});
@@ -1065,6 +1079,24 @@ function startTheme(i){
   else for(let round=0; round<2; round++)      /* words without pictures: matching only, each word twice */
     chunks(shuffle(its)).forEach(set => queue.push({k:"match", set}));
   shuffle(T.sidx.map(si => sent(T.level, si)).filter(Boolean)).forEach(s => queue.push({k:"sentence", s}));
+  qi = 0; stars = 0; $("#stars").textContent = 0;
+  show("game"); next();
+}
+/* practice: the twelve words the player knows least well, oldest first, from any theme */
+function startPractice(){
+  const ids = shuffle(Object.keys(W)).sort((a,b)=> (W[a].s - W[b].s) || (W[a].d - W[b].d)).slice(0,12);
+  const its = shuffle(ids.map(id=>{
+    const [li,k,i] = id.split(".").map(Number), L = LEVELS[li], name = L && Object.keys(L.themes)[k];
+    return name && L.themes[name][i] ? makeItem(li, k, i) : null;
+  }).filter(Boolean));
+  if(its.length < 4) return;
+  practice = true; theme = ""; queue = [];
+  pool = its.filter(x => x.p);
+  if(pool.length < 4){ level = 0; pool = pool.concat(items("Animals")); }
+  chunks(its).forEach(set=>{
+    set.forEach(item => { if(item.p) queue.push({k:"listen", item}); });
+    queue.push({k:"match", set});
+  });
   qi = 0; stars = 0; $("#stars").textContent = 0;
   show("game"); next();
 }
@@ -1080,6 +1112,11 @@ function next(){
   else qSentence(step.s);
 }
 function finish(){
+  if(practice){
+    $("#bigstars").textContent = "★ " + stars; $("#donetext").textContent = U.pdone(stars);
+    $("#again").textContent = U.home; $("#gohome").hidden = true;
+    show("done"); say(C.bravo); return;
+  }
   done[theme] = (done[theme] || 0) + 1;
   try{ localStorage.setItem(key("themes"), JSON.stringify(done)); }catch(e){}
   const last = ti >= THEMES.length-1;
@@ -1092,15 +1129,17 @@ function finish(){
 
 /* ---------- hear the word, find the picture ---------- */
 function qListen(target){
-  const opts = shuffle([target, ...shuffle(items(theme).filter(i=>i.id!==target.id)).slice(0,3)]);
+  const seenPic = new Set([target.p]);
+  const wrong = shuffle(pool).filter(o => o.p && !seenPic.has(o.p) && seenPic.add(o.p)).slice(0,3);
+  const opts = shuffle([target, ...wrong]);
   $("#stage").innerHTML = `<p class="hint">${U.which}</p><button class="fr" id="word">${SPK}<span>${tw(target)}</span></button>`;
   $("#word").addEventListener("click", ()=> say(tw(target)));
   const a = $("#answers"); a.className = "answers pics";
   a.innerHTML = opts.map(o=>`<button class="card" data-id="${o.id}" aria-label="${nw(o)}">${pic(o)}</button>`).join("");
   a.onclick = e => {
     const c = e.target.closest(".card"); if(!c || a.dataset.lock) return;
-    if(+c.dataset.id === target.id){
-      a.dataset.lock = "1"; c.classList.add("ok","pop"); addStar(); say(C.yes + tw(target));
+    if(c.dataset.id === target.id){
+      a.dataset.lock = "1"; c.classList.add("ok","pop"); mark(target, first); addStar(); say(C.yes + tw(target));
       later(go, 1400);
     } else { first = false; c.classList.add("shake"); setTimeout(()=>c.classList.add("gone"), 400); }
   };
@@ -1118,7 +1157,7 @@ function qMatch(set){
   let pickF = null, pickE = null, left = set.length; const missed = new Set(); const mine = qi;
   $("#stage").onclick = e => {
     const t = e.target.closest(".tile"); if(!t || t.classList.contains("ok")) return;
-    const it = set.find(o=>o.id===+t.dataset.id);
+    const it = set.find(o=>o.id===t.dataset.id);
     if(t.dataset.side==="f"){ say(tw(it)); pickF && pickF.classList.remove("sel"); pickF = t; }
     else { pickE && pickE.classList.remove("sel"); pickE = t; }   /* only the language being learned is spoken */
     t.classList.add("sel");
@@ -1128,11 +1167,11 @@ function qMatch(set){
     if(f.dataset.id === en.dataset.id){
       [f,en].forEach(x=>x.classList.add("ok","pop"));
       if(it.p) en.insertAdjacentHTML("afterbegin", pic(it));
-      first = !missed.has(it.id); addStar();
+      first = !missed.has(it.id); mark(it, first); addStar();
       setTimeout(()=>{ if(qi===mine && !$("#game").hidden) say(tw(it)); }, 700);
       if(--left===0){ $("#stage").onclick = null; nextButton(); }
     } else {
-      missed.add(+f.dataset.id);
+      missed.add(f.dataset.id);
       [f,en].forEach(x=>{ x.classList.remove("shake"); void x.offsetWidth; x.classList.add("shake"); });
     }
   };
