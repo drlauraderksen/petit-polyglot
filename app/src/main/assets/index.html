@@ -400,6 +400,40 @@ const NB = [
    ["hei","takk","ja","nei","jeg elsker deg","god natt","vær så snill","god appetitt","gratulerer med dagen","hysj"] ]
 ];
 
+/* ---------- Norwegian "the" forms (Oslo usage: "en bok" but "boka"); "" where a word has none ---------- */
+const NBD = [
+ [ ["katten","hunden","hesten","kua","grisen","kaninen","fuglen","fisken","frosken","anda","musa","sommerfuglen"],
+   ["eplet","bananen","","","","egget","kaka","jordbæret","gulrota","","",""],
+   [],
+   ["huset","sola","månen","stjerna","treet","blomsten","bilen","sykkelen","boka","ballen","hatten","skoen","senga",""],
+   [] ],
+ [ ["løven","elefanten","apen","bjørnen","ulven","reven","sjiraffen","tigeren","slangen","skilpadda","hvalen","pingvinen"],
+   ["hånda","foten","øyet","nesa","munnen","øret","tanna","armen","beinet","hjertet"],
+   ["buksa","kjolen","jakka","sokken","T-skjorta","","skjerfet","","capsen","støvelen"],
+   ["","","babyen","","","gutten","jenta","familien","kongen","dronningen"],
+   ["tomaten","sitronen","","kirsebæret","pæra","","","","","","",""] ],
+ [ ["skyen","","","regnbuen","fjellet","havet","","bladet","soppen","tordenværet","stranda","øya"],
+   ["flyet","båten","lastebilen","raketten","traktoren","motorsykkelen","helikopteret","toget","bussen","sparkesykkelen"],
+   ["døra","stolen","nøkkelen","blyanten","saksa","klokka","telefonen","gaven","ryggsekken","såpa","badekaret","paraplyen"],
+   [],
+   [] ],
+ [ ["roboten","dragen","puslespillet","","tromma","gitaren","trompeten","fiolinen","bamsen","","","dataspillet"],
+   ["sauen","geita","høna","hanen","kalkunen","bia","marihøna","sneglen","mauren","edderkoppen","pinnsvinet","ekornet"],
+   ["haien","delfinen","blekkspruten","krabben","reka","skjellet","hummeren","krokodillen","svanen","flamingoen"],
+   ["appelsinen","ferskenen","ananasen","vannmelonen","kokosnøtta","avokadoen","","agurken","poteten","løken","","mangoen"],
+   ["","","kjeksen","croissanten","pannekaka","smultringen","","","baguetten","paien"] ],
+ [ ["legen","brannmannen","politibetjenten","kokken","bonden","astronauten","læreren","piloten","kunstneren","klovnen"],
+   ["skolen","sykehuset","slottet","kirken","brua","butikken","hotellet","fabrikken","teltet","sirkuset","fontenen","byen"],
+   ["hammeren","skjea","kniven","stearinlyset","esken","brevet","avisa","forstørrelsesglasset","bjella","lyspæra","datamaskinen","kameraet"],
+   ["","planeten","kometen","romvesenet","satellitten","lynet","tornadoen","vulkanen","ørkenen","skogen"],
+   [] ],
+ [ ["dragen","enhjørningen","feen","spøkelset","heksa","dinosauren","havfrua","krona","sverdet","monsteret","vampyren","alven"],
+   ["juletreet","","snømannen","gresskaret","","festen","flagget","sløyfa","pokalen",""],
+   ["sebraen","kenguruen","kamelen","ugla","ørnen","papegøyen","flaggermusa","påfuglen","gorillaen","neshornet","hjorten","flodhesten"],
+   [],
+   [] ]
+];
+
 /* ---------- English sentences, same order as the French ones; [brackets] mark the missing word ---------- */
 const EN_S = [
  ["[The cat] drinks milk.","[The dog] runs in the garden.","[The sun] is shining.","[The fish] swims in the water.","[The bird] sings.","[The car] goes fast.","[The moon] is in the sky.","[The cow] says moo.","[The frog] jumps.",
@@ -430,7 +464,7 @@ const NB_S = [
  ["[Løven] brøler.","[Apen] spiser en banan.","[Elefanten] er veldig stor.","[Skilpadda] går sakte.","[Babyen] sover.","[Pingvinen] liker snøen.","[Bestemor] leser en bok.","[Slangen] er lang.",
   "Jeg tar på meg [jakka mi].","Jeg tar på meg [sokkene mine].","Jeg pusser [tennene mine].","Jeg vasker [hendene mine].","Jeg liker [sjokolade].","Jeg spiser [kirsebær].","Hun har på seg [en kjole].","Han har på seg [briller]."],
  ["Fuglen [flyr] på himmelen.","Fisken [svømmer] i havet.","Frosken [hopper] i vannet.","Babyen [sover] i senga si.","Jenta [synger] en sang.","Gutten [spiller] ball.","Hunden [spiser] beinet sitt.","Hesten [løper] veldig fort.",
-  "Ilden er [varm].","Snøen er [kald].","Elefanten er [stor].","Musa er [lita].","Gutten er [trist].","Jenta er [glad].","Sitronen er [gul].","Treet er [grønt].",
+  "Ilden er [varm].","Snøen er [kald].","Elefanten er [stor].","Musa er [liten].","Gutten er [trist].","Jenta er [glad].","Sitronen er [gul].","Treet er [grønt].",
   "[Flyet] flyr på himmelen.","[Båten] flyter på vannet.","[Raketten] drar ut i verdensrommet.","[Toget] kjører på skinnene.","[Bussen] kjører til skolen."],
  ["[Bia] liker blomster.","[Høna] legger et egg.","[Sneglen] beveger seg sakte.","[Haien] svømmer i havet.","[Ekornet] klatrer i treet.","[Edderkoppen] har åtte bein.","[Roboten] snakker.","[Delfinen] hopper i vannet.",
   "Jeg spiller [gitar].","Jeg spiller [tromme].","Jeg spiller [fiolin].","Jeg spiller [trompet].",
@@ -477,6 +511,9 @@ const tw = it => it[C.t], nw = it => it[C.n];
 const items = t => {
   const L = LEVELS[level], k = Object.keys(L.themes).indexOf(t);
   return L.themes[t].map((s,i)=>{ const [fr,en,p] = s.split("|"), nb = NB[level][k][i];
+    /* in the Norwegian course a word sometimes appears as "treet / the tree" instead of "et tre / a tree" */
+    const def = C.t==="nb" && Math.random() < 0.4 ? (NBD[level][k] || [])[i] : "";
+    if(def) return {id:i, fr, en:"the " + en, p, nb:def};
     return {id:i, fr, en:enWith(en, C.t==="nb" ? nb : fr), p, nb}; });
 };
 /* English gets the same kind of article as the word it is paired with: "la lune" -> "the moon", "en måne" -> "a moon" */
