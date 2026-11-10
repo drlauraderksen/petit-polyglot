@@ -274,7 +274,11 @@ const LEVELS = [
     ["⛵","","Le bateau"," flotte sur l'eau.","The boat floats on the water.","s"],
     ["🚀","","La fusée"," va dans l'espace.","The rocket goes into space.","s"],
     ["🚆","","Le train"," roule sur les rails.","The train runs on the rails.","s"],
-    ["🚌🏫","","Le bus"," va à l'école.","The bus goes to school.","s"]
+    ["🚌🏫","","Le bus"," va à l'école.","The bus goes to school.","s"],
+    ["🎂", "J'ai ", "onze", " ans.", "I am eleven years old.", "n"],
+    ["🥚", "Il y a ", "douze", " œufs.", "There are twelve eggs.", "n"],
+    ["🎈", "J'ai ", "quinze", " ballons.", "I have fifteen balloons.", "n"],
+    ["👧👦", "Il y a ", "vingt", " enfants dans la classe.", "There are twenty children in the class.", "n"]
    ]
  }
  ,
@@ -303,7 +307,11 @@ const LEVELS = [
     ["☕","Maman boit ","un café",".","Mum drinks a coffee.","o"],
     ["🧸","Je dors avec ","mon nounours",".","I sleep with my teddy bear.","o"],
     ["🎨","Je fais ","de la peinture",".","I am painting.","o"],
-    ["🥖","J'achète ","une baguette",".","I buy a baguette.","o"]
+    ["🥖","J'achète ","une baguette",".","I buy a baguette.","o"],
+    ["🍊", "Je mange ", "une orange", ".", "I eat an orange.", "o"],
+    ["🥔", "Papa épluche ", "une pomme de terre", ".", "Dad peels a potato.", "o"],
+    ["🥒", "Je coupe ", "un concombre", ".", "I cut a cucumber.", "o"],
+    ["🥗", "Maman prépare ", "une salade", ".", "Mum makes a salad.", "o"]
    ]
  },
  { themes: {
@@ -331,7 +339,16 @@ const LEVELS = [
     ["📷","Je prends une photo avec ","l'appareil photo",".","I take a photo with the camera.","o"],
     ["🕯️","J'allume ","la bougie",".","I light the candle.","o"],
     ["💻","Papa travaille sur ","l'ordinateur",".","Dad works on the computer.","o"],
-    ["🔔","J'entends ","la cloche",".","I hear the bell.","o"]
+    ["🔔","J'entends ","la cloche",".","I hear the bell.","o"],
+    ["🌍", "", "La Terre", " est ronde.", "The Earth is round.", "s"],
+    ["🌋🔥", "", "Le volcan", " crache du feu.", "The volcano spits fire.", "s"],
+    ["🛰️", "", "Le satellite", " tourne autour de la Terre.", "The satellite goes around the Earth.", "s"],
+    ["👽🛸", "", "L'extraterrestre", " a un vaisseau.", "The alien has a spaceship.", "s"],
+    ["🎂👵", "Grand-mère a ", "soixante", " ans.", "Grandma is sixty years old.", "n"],
+    ["🐜", "Il y a ", "cent", " fourmis.", "There are one hundred ants.", "n"],
+    ["⭐", "Il y a ", "mille", " étoiles.", "There are one thousand stars.", "n"],
+    ["📚", "J'ai ", "trente", " livres.", "I have thirty books.", "n"],
+    ["🍪", "Il y a ", "zéro", " biscuit.", "There are zero cookies.", "n"]
    ]
  },
  { themes: {
@@ -618,13 +635,16 @@ const EN_S = [
   "I put on [my coat].","I put on [my socks].","I brush [my teeth].","I wash [my hands].","I like [chocolate].","I eat [cherries].","She wears [a dress].","He wears [glasses]."],
  ["The bird [flies] in the sky.","The fish [swims] in the sea.","The frog [jumps] in the water.","The baby [sleeps] in his bed.","The girl [sings] a song.","The boy [plays] ball.","The dog [eats] his bone.","The horse [runs] very fast.",
   "The fire is [hot].","The snow is [cold].","The elephant is [big].","The mouse is [small].","The boy is [sad].","The girl is [happy].","The lemon is [yellow].","The tree is [green].",
-  "[The plane] flies in the sky.","[The boat] floats on the water.","[The rocket] goes into space.","[The train] runs on the rails.","[The bus] goes to school."],
+  "[The plane] flies in the sky.","[The boat] floats on the water.","[The rocket] goes into space.","[The train] runs on the rails.","[The bus] goes to school.",
+  "I am [eleven] years old.","There are [twelve] eggs.","I have [fifteen] balloons.","There are [twenty] children in the class."],
  ["[The bee] likes flowers.","[The hen] lays an egg.","[The snail] moves slowly.","[The shark] swims in the sea.","[The squirrel] climbs the tree.","[The spider] has eight legs.","[The robot] talks.","[The dolphin] jumps in the water.",
   "I play [the guitar].","I play [the drum].","I play [the violin].","I play [the trumpet].",
-  "I eat [a croissant].","I eat [watermelon].","Mum drinks [a coffee].","I sleep with [my teddy bear].","I do [some painting].","I buy [a baguette]."],
+  "I eat [a croissant].","I eat [watermelon].","Mum drinks [a coffee].","I sleep with [my teddy bear].","I do [some painting].","I buy [a baguette].",
+  "I eat [an orange].","Dad peels [a potato].","I cut [a cucumber].","Mum makes [a salad]."],
  ["[The firefighter] puts out the fire.","[The cook] makes the meal.","[The doctor] looks after sick people.","[The astronaut] goes into space.","[The farmer] drives the tractor.","[The clown] is funny.",
   "I go to [school].","The doctor works at [the hospital].","The king lives in [the castle].","I sleep in [the tent].","The clown works in [the circus].","The wolf lives in [the forest].",
-  "I eat with [a spoon].","I write [a letter].","I take a photo with [the camera].","I light [the candle].","Dad works on [the computer].","I hear [the bell]."],
+  "I eat with [a spoon].","I write [a letter].","I take a photo with [the camera].","I light [the candle].","Dad works on [the computer].","I hear [the bell].",
+  "[The Earth] is round.","[The volcano] spits fire.","[The satellite] goes around the Earth.","[The alien] has a spaceship.","Grandma is [sixty] years old.","There are [one hundred] ants.","There are [one thousand] stars.","I have [thirty] books.","There are [zero] cookies."],
  ["The boy [runs] in the park.","The girl [dances] with her mum.","Dad [swims] in the pool.","The baby [cries].","Mum [laughs].","The girl [writes] a letter.","The boy [climbs] the wall.","Dad [catches] a fish.",
   "[The dragon] breathes fire.","[The unicorn] is magic.","[The ghost] is scary.","[The owl] sleeps in the day.","[The kangaroo] jumps very high.","[Santa] brings presents.","[The bat] flies at night.","[The snowman] melts in the sun.",
   "[Hello], how are you?","[Thank you] very much!","[Good night], Mum!","[Happy birthday], Dad!"],
@@ -643,13 +663,16 @@ const NB_S = [
   "Jeg tar på meg [jakka mi].","Jeg tar på meg [sokkene mine].","Jeg pusser [tennene mine].","Jeg vasker [hendene mine].","Jeg liker [sjokolade].","Jeg spiser [kirsebær].","Hun har på seg [en kjole].","Han har på seg [briller]."],
  ["Fuglen [flyr] på himmelen.","Fisken [svømmer] i havet.","Frosken [hopper] i vannet.","Babyen [sover] i senga si.","Jenta [synger] en sang.","Gutten [spiller] ball.","Hunden [spiser] beinet sitt.","Hesten [løper] veldig fort.",
   "Ilden er [varm].","Snøen er [kald].","Elefanten er [stor].","Musa er [liten].","Gutten er [trist].","Jenta er [glad].","Sitronen er [gul].","Treet er [grønt].",
-  "[Flyet] flyr på himmelen.","[Båten] flyter på vannet.","[Raketten] drar ut i verdensrommet.","[Toget] kjører på skinnene.","[Bussen] kjører til skolen."],
+  "[Flyet] flyr på himmelen.","[Båten] flyter på vannet.","[Raketten] drar ut i verdensrommet.","[Toget] kjører på skinnene.","[Bussen] kjører til skolen.",
+  "Jeg er [elleve] år.","Det er [tolv] egg.","Jeg har [femten] ballonger.","Det er [tjue] barn i klassen."],
  ["[Bia] liker blomster.","[Høna] legger et egg.","[Sneglen] beveger seg sakte.","[Haien] svømmer i havet.","[Ekornet] klatrer i treet.","[Edderkoppen] har åtte bein.","[Roboten] snakker.","[Delfinen] hopper i vannet.",
   "Jeg spiller [gitar].","Jeg spiller [tromme].","Jeg spiller [fiolin].","Jeg spiller [trompet].",
-  "Jeg spiser [en croissant].","Jeg spiser [vannmelon].","Mamma drikker [en kaffe].","Jeg sover med [bamsen min].","Jeg maler med [maling].","Jeg kjøper [en baguett]."],
+  "Jeg spiser [en croissant].","Jeg spiser [vannmelon].","Mamma drikker [en kaffe].","Jeg sover med [bamsen min].","Jeg maler med [maling].","Jeg kjøper [en baguett].",
+  "Jeg spiser [en appelsin].","Pappa skreller [en potet].","Jeg skjærer [en agurk].","Mamma lager [en salat]."],
  ["[Brannmannen] slukker brannen.","[Kokken] lager maten.","[Legen] tar seg av de syke.","[Astronauten] drar ut i verdensrommet.","[Bonden] kjører traktoren.","[Klovnen] er morsom.",
   "Jeg går på [skolen].","Legen jobber på [sykehuset].","Kongen bor på [slottet].","Jeg sover i [teltet].","Klovnen jobber i [sirkuset].","Ulven bor i [skogen].",
-  "Jeg spiser med [en skje].","Jeg skriver [et brev].","Jeg tar bilde med [kameraet].","Jeg tenner [lyset].","Pappa jobber på [datamaskinen].","Jeg hører [bjella]."],
+  "Jeg spiser med [en skje].","Jeg skriver [et brev].","Jeg tar bilde med [kameraet].","Jeg tenner [lyset].","Pappa jobber på [datamaskinen].","Jeg hører [bjella].",
+  "[Jorda] er rund.","[Vulkanen] spruter ild.","[Satellitten] går rundt jorda.","[Romvesenet] har et romskip.","Bestemor er [seksti] år.","Det er [hundre] maur.","Det er [tusen] stjerner.","Jeg har [tretti] bøker.","Det er [null] kjeks."],
  ["Gutten [løper] i parken.","Jenta [danser] med mammaen sin.","Pappa [svømmer] i bassenget.","Babyen [gråter].","Mamma [ler].","Jenta [skriver] et brev.","Gutten [klatrer] på veggen.","Pappa [fanger] en fisk.",
   "[Dragen] spruter ild.","[Enhjørningen] er magisk.","[Spøkelset] er skummelt.","[Ugla] sover om dagen.","[Kenguruen] hopper veldig høyt.","[Julenissen] kommer med gaver.","[Flaggermusa] flyr om natta.","[Snømannen] smelter i sola.",
   "[Hei], hvordan går det?","Tusen [takk]!","[God natt], mamma!","[Gratulerer med dagen], pappa!"],
@@ -779,9 +802,9 @@ function checkVoice(){
 const SMAP = [
   [0,0,3,0,0,3,3,0,0,1,1,3,3,1,0,3, 2,2,2,2,2, 4,4,4,4],
   [0,0,0,0,3,0,3,0,2,2,1,1,4,4,2,2],
-  [0,0,0,2,2,2,2,0,3,3,3,3,3,3,0,0, 1,1,1,1,1],
-  [1,1,1,2,1,1,0,2,0,0,0,0,4,3,4,0,0,4],
-  [0,0,0,0,0,0,1,1,1,1,1,3,2,2,2,2,2,2],
+  [0,0,0,2,2,2,2,0,3,3,3,3,3,3,0,0, 1,1,1,1,1, 4,4,4,4],
+  [1,1,1,2,1,1,0,2,0,0,0,0,4,3,4,0,0,4, 3,3,3,3],
+  [0,0,0,0,0,0,1,1,1,1,1,3,2,2,2,2,2,2, 3,3,3,3,4,4,4,4,4],
   [3,3,3,3,3,3,3,3,0,0,0,2,2,1,2,1,4,4,4,4],
  [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4],
  [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4],
