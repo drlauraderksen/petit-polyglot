@@ -32,7 +32,7 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:3px}
 .app{max-width:560px;height:100%;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
 
 /* ---------- home ---------- */
-#who,#edit,#native,#pick,#home{display:flex;flex-direction:column;gap:16px;flex:1;min-height:0;overflow-y:auto}
+#who,#edit,#native,#pick,#home,#test{display:flex;flex-direction:column;gap:16px;flex:1;min-height:0;overflow-y:auto}
 .brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand h1{flex:1;min-width:0}
 h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;margin:0;text-wrap:balance}
@@ -213,6 +213,13 @@ h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;mar
     <button class="game g2" id="practice" hidden><span class="ico">🔁</span><span class="grow"><b id="practicet"></b><span class="d" id="practiced"></span></span></button>
     <p class="label" id="lbl"></p>
     <div class="tiles" id="levels"></div>
+    <button class="back" id="opentest" style="align-self:center">🔧 Test</button>
+  </section>
+
+  <section id="test" hidden>
+    <div class="brand"><button class="back" id="testback" aria-label="Back">←</button><h1>Test</h1></div>
+    <p class="note">For grown-ups: try one exercise at a time, with random words from the language chosen. Nothing here changes points or progress.</p>
+    <div class="answers words" id="tests"></div>
   </section>
 
   <section id="game" hidden>
@@ -924,10 +931,11 @@ function sent(li, si){
 let level = 0, theme = "", ti = 0, queue = [], qi = 0, stars = 0, first = true, timer = null;
 let total = 0, done = {};
 /* every word the player has met: s = how well it is known (0 to 5), d = the day it was last seen */
-let W = {}, practice = false, pool = [];
+let W = {}, practice = false, pool = [], testing = false;
 /* P = how many parts of each unfinished theme are done; a theme is split into short parts */
 let P = {}, part = 0, nParts = 1, themeDone = false;
 function mark(item, ok){
+  if(testing) return;
   const w = W[item.id] || {s:0, d:0};
   w.s = ok ? Math.min(5, w.s + 1) : 0; w.d = Math.floor(Date.now() / 864e5);
   W[item.id] = w;
@@ -935,11 +943,11 @@ function mark(item, ok){
 }
 const key = k => `pp-${me.id}-${k}-${store(cid)}`;   /* each player keeps separate points and stars for each course */
 
-function show(id){ ["who","edit","native","pick","home","game","done"].forEach(v => $("#"+v).hidden = v!==id); }
+function show(id){ ["who","edit","native","pick","home","test","game","done"].forEach(v => $("#"+v).hidden = v!==id); }
 function addStar(){
-  const n = first ? 10 : 5; stars += n; total += n;
-  $("#stars").textContent = stars; $("#total").textContent = total;
-  try{ localStorage.setItem(key("points"), total); }catch(e){}
+  const n = first ? 10 : 5; stars += n;
+  $("#stars").textContent = stars;
+  if(!testing){ total += n; $("#total").textContent = total; try{ localStorage.setItem(key("points"), total); }catch(e){} }
   const box = $("#pts"); box.classList.remove("pop"); void box.offsetWidth; box.classList.add("pop");
   const f = document.createElement("span"); f.className = "plus"; f.textContent = "+" + n; box.appendChild(f);
   setTimeout(()=> f.remove(), 900);
@@ -1107,9 +1115,34 @@ function nextTheme(){
   return -1;
 }
 $("#practice").addEventListener("click", startPractice);
-function home(){ clearTimeout(timer); stopSpeech(); drawHome(); show("home"); }
+function home(){
+  clearTimeout(timer); stopSpeech();
+  if(testing){ show("test"); return; }             /* leaving a test exercise goes back to the test list */
+  drawHome(); show("home");
+}
+
+/* ---------- test page for grown-ups: run any one exercise without playing through a theme ---------- */
+const TESTS = [["listen","Find the picture"],["match","Match the words"],["hear","Listen only"],["pick","Which word is it?"],
+  ["say","Say it (microphone, tablet app only)"],["sentence","Fill in the sentence"],
+  ["match0","Match · words without pictures"],["hear0","Listen only · words without pictures"],["pick0","Which word · words without pictures"],
+  ["part","One whole part (4 words, every exercise)"]];
+$("#tests").innerHTML = TESTS.map(([k,label]) => `<button class="wbtn nat" data-k="${k}">${label}</button>`).join("");
+$("#tests").addEventListener("click", e=>{ const b = e.target.closest("[data-k]"); if(b) startTest(b.dataset.k); });
+$("#opentest").addEventListener("click", ()=>{ testing = true; show("test"); });
+$("#testback").addEventListener("click", ()=>{ testing = false; home(); });
+function startTest(kind){
+  testing = true; practice = false; micOff = false;
+  const plain = kind.endsWith("0"), k = kind.replace("0","");
+  const fits = THEMES.map((T,i)=>i).filter(i => plain ? ICON[THEMES[i].name] : !ICON[THEMES[i].name] && (k!=="sentence" || themeSents(THEMES[i]).length));
+  ti = fits[Math.random()*fits.length|0]; const T = THEMES[ti]; level = T.level; theme = T.name;
+  const all = shuffle(items(theme)), set = all.slice(0,4); pool = all; nParts = 1; part = 0;
+  queue = k==="match" ? [{k, set}] : k==="sentence" ? [{k, s:shuffle(themeSents(T))[0]}] : k==="part" ? partSteps(set, true) : [{k, item:set[0]}];
+  qi = 0; stars = 0; $("#stars").textContent = 0;
+  show("game"); next();
+}
 /* the tablet's back button: exercise -> themes -> language choice -> players -> leave the app */
 window.goBack = function(){
+  if(!$("#test").hidden){ testing = false; home(); return "stay"; }
   if(!$("#who").hidden) return "exit";
   if(!$("#edit").hidden){ if(!profiles.length) return "exit"; goWho(); return "stay"; }
   if(!$("#native").hidden || !$("#pick").hidden){ goWho(); return "stay"; }
@@ -1170,6 +1203,7 @@ function next(){
   else qSentence(step.s);
 }
 function finish(){
+  if(testing){ clearTimeout(timer); show("test"); return; }
   if(practice){
     $("#bigstars").textContent = "★ " + stars; $("#donetext").textContent = U.pdone(stars);
     $("#again").textContent = U.home; $("#gohome").hidden = true;
