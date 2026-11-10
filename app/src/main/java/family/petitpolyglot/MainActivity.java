@@ -34,13 +34,28 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         ready = status == TextToSpeech.SUCCESS;
     }
 
+    /** Norwegian is "nb-NO" on some speech engines and "no-NO" on others. */
+    private Locale pick(String lang) {
+        Locale wanted = Locale.forLanguageTag(lang);
+        if (lang.startsWith("nb") && tts.isLanguageAvailable(wanted) < TextToSpeech.LANG_AVAILABLE) {
+            Locale other = Locale.forLanguageTag("no-NO");
+            if (tts.isLanguageAvailable(other) >= TextToSpeech.LANG_AVAILABLE) return other;
+        }
+        return wanted;
+    }
+
     private class Bridge {
         @JavascriptInterface
         public void speak(String text, String lang) {
+            speakRate(text, lang, 0.9f);
+        }
+
+        @JavascriptInterface
+        public void speakRate(String text, String lang, float rate) {
             if (!ready) return;
             try {
-                tts.setLanguage(Locale.forLanguageTag(lang));
-                tts.setSpeechRate(lang.startsWith("fr") ? 0.85f : 0.95f);
+                tts.setLanguage(pick(lang));
+                tts.setSpeechRate(rate);
                 tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "word");
             } catch (Exception ignored) { }
         }
@@ -52,7 +67,7 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         public boolean hasVoice(String lang) {
             if (!ready) return false;
             try {
-                return tts.isLanguageAvailable(Locale.forLanguageTag(lang)) >= TextToSpeech.LANG_AVAILABLE;
+                return tts.isLanguageAvailable(pick(lang)) >= TextToSpeech.LANG_AVAILABLE;
             } catch (Exception e) { return false; }
         }
 
@@ -62,11 +77,11 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         }
     }
 
-    /** Back button: from an exercise go to the home screen, from the home screen leave the app. */
+    /** Back button: exercise, then themes, then language choice, then leave the app. */
     @Override
     public void onBackPressed() {
         web.evaluateJavascript(
-            "(function(){if(!document.getElementById('home').hidden)return 'exit';home();return 'stay';})()",
+            "(function(){return window.goBack ? window.goBack() : 'exit';})()",
             value -> { if (value == null || value.contains("exit")) finish(); });
     }
 

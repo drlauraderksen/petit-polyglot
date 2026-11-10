@@ -32,8 +32,9 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:3px}
 .app{max-width:560px;height:100%;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
 
 /* ---------- home ---------- */
-#home{display:flex;flex-direction:column;gap:16px;flex:1;min-height:0;overflow-y:auto}
+#pick,#home{display:flex;flex-direction:column;gap:16px;flex:1;min-height:0;overflow-y:auto}
 .brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand h1{flex:1;min-width:0}
 h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;margin:0;text-wrap:balance}
 .flag{display:inline-flex;width:44px;height:30px;border-radius:6px;overflow:hidden;border:3px solid var(--ink);flex:none}
 .flag i{flex:1}.flag i:nth-child(1){background:#2456D6}.flag i:nth-child(2){background:#fff}.flag i:nth-child(3){background:var(--coral)}
@@ -139,34 +140,38 @@ h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;mar
 <body>
 <div class="app">
 
-  <section id="home">
+  <section id="pick">
+    <div class="brand"><h1>Petit Polyglot</h1></div>
+    <div class="games" id="courses"></div>
+  </section>
+
+  <section id="home" hidden>
     <div class="brand">
-      <h1>Petit Français</h1>
-      <span class="flag" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span class="total" aria-label="Total points">★ <span id="total">0</span></span>
+      <button class="back" id="change" aria-label="Change language">←</button>
+      <h1 id="ctitle"></h1>
+      <span class="total">★ <span id="total">0</span></span>
     </div>
     <button class="hello" id="hello">
-      <svg class="spk" style="font-size:2.2rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg>
-      <span><b>Bonjour !</b><small>Tap any yellow French word to hear it.</small></span>
+      <svg class="spk" style="font-size:2.2rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg>
+      <span><b id="hellow"></b><small id="hellos"></small></span>
     </button>
-    <p class="note" id="voicenote" hidden>This device has no French voice installed, so words may sound wrong. Add French under your device's text-to-speech settings.</p>
-
-    <p class="label">Pick a theme</p>
+    <p class="note" id="voicenote" hidden></p>
+    <p class="label" id="lbl"></p>
     <div class="tiles" id="levels"></div>
   </section>
 
   <section id="game" hidden>
     <div class="bar">
       <button class="back" id="back">← Home</button>
-      <div class="meter" id="bar" aria-label="Progress"><i></i></div>
-      <span class="stars" id="pts" aria-label="Points this game">★ <span id="stars">0</span></span>
+      <div class="meter" id="bar"><i></i></div>
+      <span class="stars" id="pts">★ <span id="stars">0</span></span>
     </div>
     <div class="stage" id="stage"></div>
     <div id="answers"></div>
   </section>
 
   <section id="done" hidden>
-    <h2>Bravo !</h2>
+    <h2 id="bravo">Bravo !</h2>
     <div class="bigstars" id="bigstars"></div>
     <p id="donetext" style="font-size:1.2rem;margin:0"></p>
     <div class="row">
@@ -361,9 +366,98 @@ const LEVELS = [
  }
 ];
 
+/* ---------- Norwegian words, in the same order as the lists above ---------- */
+const NB = [
+ [ ["en katt","en hund","en hest","ei ku","en gris","en kanin","en fugl","en fisk","en frosk","ei and","ei mus","en sommerfugl"],
+   ["et eple","en banan","brød","ost","melk","et egg","ei kake","et jordbær","en gulrot","is","vann","kylling"],
+   ["rød","blå","grønn","gul","oransje","rosa","lilla","svart","hvit","brun"],
+   ["et hus","ei sol","en måne","ei stjerne","et tre","en blomst","en bil","en sykkel","ei bok","en ball","en hatt","en sko","ei seng","regn"],
+   ["en","to","tre","fire","fem","seks","sju","åtte","ni","ti"] ],
+ [ ["en løve","en elefant","en ape","en bjørn","en ulv","en rev","en sjiraff","en tiger","en slange","ei skilpadde","en hval","en pingvin"],
+   ["ei hånd","en fot","et øye","ei nese","en munn","et øre","ei tann","en arm","et bein","et hjerte"],
+   ["ei bukse","en kjole","ei jakke","en sokk","en T-skjorte","hansker","et skjerf","briller","en caps","en støvel"],
+   ["mamma","pappa","en baby","bestemor","bestefar","en gutt","ei jente","en familie","en konge","en dronning"],
+   ["en tomat","en sitron","druer","et kirsebær","ei pære","mais","ris","suppe","en kjærlighet på pinne","sjokolade","honning","pommes frites"] ],
+ [ ["ei sky","snø","vind","en regnbue","et fjell","et hav","ild","et blad","en sopp","et tordenvær","ei strand","ei øy"],
+   ["et fly","en båt","en lastebil","en rakett","en traktor","en motorsykkel","et helikopter","et tog","en buss","en sparkesykkel"],
+   ["ei dør","en stol","en nøkkel","en blyant","ei saks","ei klokke","en telefon","en gave","en ryggsekk","ei såpe","et badekar","en paraply"],
+   ["glad","trist","sint","trøtt","syk","overrasket","redd","morsom","kald","varm"],
+   ["elleve","tolv","tretten","fjorten","femten","seksten","sytten","atten","nitten","tjue"] ],
+ [ ["en robot","en drage","et puslespill","terninger","ei tromme","en gitar","en trompet","en fiolin","en bamse","maling","skøyter","et dataspill"],
+   ["en sau","ei geit","ei høne","en hane","en kalkun","ei bie","ei marihøne","en snegl","en maur","en edderkopp","et pinnsvin","et ekorn"],
+   ["en hai","en delfin","en blekksprut","en krabbe","ei reke","et skjell","en hummer","en krokodille","ei svane","en flamingo"],
+   ["en appelsin","en fersken","en ananas","en vannmelon","ei kokosnøtt","en avokado","en brokkoli","en agurk","en potet","en løk","salat","en mango"],
+   ["te","kaffe","en kjeks","en croissant","ei pannekake","en smultring","pasta","salt","en baguett","en pai"] ],
+ [ ["en lege","en brannmann","en politibetjent","en kokk","en bonde","en astronaut","en lærer","en pilot","en kunstner","en klovn"],
+   ["en skole","et sykehus","et slott","ei kirke","ei bru","en butikk","et hotell","en fabrikk","et telt","et sirkus","en fontene","en by"],
+   ["en hammer","ei skje","en kniv","et stearinlys","en eske","et brev","ei avis","et forstørrelsesglass","ei bjelle","ei lyspære","en datamaskin","et kamera"],
+   ["jorda","en planet","en komet","et romvesen","en satellitt","et lyn","en tornado","en vulkan","en ørken","en skog"],
+   ["null","tretti","førti","femti","seksti","sytti","åtti","nitti","hundre","tusen"] ],
+ [ ["en drage","en enhjørning","en fe","et spøkelse","ei heks","en dinosaur","ei havfrue","ei krone","et sverd","et monster","en vampyr","en alv"],
+   ["et juletre","julenissen","en snømann","et gresskar","fyrverkeri","en fest","et flagg","ei sløyfe","en pokal","musikk"],
+   ["en sebra","en kenguru","en kamel","ei ugle","en ørn","en papegøye","ei flaggermus","en påfugl","en gorilla","et neshorn","en hjort","en flodhest"],
+   ["å løpe","å svømme","å danse","å gå","å synge","å skrive","å klatre","å gråte","å le","å sove","å klappe","å fiske"],
+   ["hei","takk","ja","nei","jeg elsker deg","god natt","vær så snill","god appetitt","gratulerer med dagen","hysj"] ]
+];
+
+/* ---------- English sentences, same order as the French ones; [brackets] mark the missing word ---------- */
+const EN_S = [
+ ["[The cat] drinks milk.","[The dog] runs in the garden.","[The sun] is shining.","[The fish] swims in the water.","[The bird] sings.","[The car] goes fast.","[The moon] is in the sky.","[The cow] says moo.","[The frog] jumps.",
+  "I eat [an apple].","I drink [milk].","I read [a book].","I play with [the ball].","I eat [bread].","I see [a butterfly].","I wear [a hat].",
+  "The apple is [red].","The sun is [yellow].","The fish is [blue].","The tree is [green].","The flower is [pink].",
+  "I have [two] cats.","I have [three] apples.","I have [four] balls.","I have [five] stars."],
+ ["[The lion] roars.","[The monkey] eats a banana.","[The elephant] is very big.","[The turtle] walks slowly.","[The baby] is sleeping.","[The penguin] likes the snow.","[Grandma] reads a book.","[The snake] is long.",
+  "I put on [my coat].","I put on [my socks].","I brush [my teeth].","I wash [my hands].","I like [chocolate].","I eat [cherries].","She wears [a dress].","He wears [glasses]."],
+ ["The bird [flies] in the sky.","The fish [swims] in the sea.","The frog [jumps] in the water.","The baby [sleeps] in his bed.","The girl [sings] a song.","The boy [plays] ball.","The dog [eats] his bone.","The horse [runs] very fast.",
+  "The fire is [hot].","The snow is [cold].","The elephant is [big].","The mouse is [small].","The boy is [sad].","The girl is [happy].","The lemon is [yellow].","The tree is [green].",
+  "[The plane] flies in the sky.","[The boat] floats on the water.","[The rocket] goes into space.","[The train] runs on the rails.","[The bus] goes to school."],
+ ["[The bee] likes flowers.","[The hen] lays an egg.","[The snail] moves slowly.","[The shark] swims in the sea.","[The squirrel] climbs the tree.","[The spider] has eight legs.","[The robot] talks.","[The dolphin] jumps in the water.",
+  "I play [the guitar].","I play [the drum].","I play [the violin].","I play [the trumpet].",
+  "I eat [a croissant].","I eat [watermelon].","Mum drinks [a coffee].","I sleep with [my teddy bear].","I do [some painting].","I buy [a baguette]."],
+ ["[The firefighter] puts out the fire.","[The cook] makes the meal.","[The doctor] looks after sick people.","[The astronaut] goes into space.","[The farmer] drives the tractor.","[The clown] is funny.",
+  "I go to [school].","The doctor works at [the hospital].","The king lives in [the castle].","I sleep in [the tent].","The clown works in [the circus].","The wolf lives in [the forest].",
+  "I eat with [a spoon].","I write [a letter].","I take a photo with [the camera].","I light [the candle].","Dad works on [the computer].","I hear [the bell]."],
+ ["The boy [runs] in the park.","The girl [dances] with her mum.","Dad [swims] in the pool.","The baby [cries].","Mum [laughs].","The girl [writes] a letter.","The boy [climbs] the wall.","Dad [catches] a fish.",
+  "[The dragon] breathes fire.","[The unicorn] is magic.","[The ghost] is scary.","[The owl] sleeps in the day.","[The kangaroo] jumps very high.","[Santa] brings presents.","[The bat] flies at night.","[The snowman] melts in the sun.",
+  "[Hello], how are you?","[Thank you] very much!","[Good night], Mum!","[Happy birthday], Dad!"]
+];
+const NB_S = [];   /* Norwegian sentences: to be added */
+
+/* theme names for French-speaking learners */
+const THEME_FR = ["Les animaux","La nourriture","Les couleurs","Mon monde","Les nombres 1–10","Animaux sauvages","Mon corps","Les vêtements","Les gens","Encore à manger","Dehors","Ça roule, ça vole","À la maison","Les émotions","Les nombres 11–20","On joue","Ferme et jardin","Au bord de l'eau","Fruits et légumes","Le goûter","Les métiers","En ville","Objets utiles","Terre et espace","Grands nombres","Contes et légendes","La fête","Animaux du zoo","Les actions","Mots gentils"];
+
 const $ = s => document.querySelector(s);
 const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
-const items = t => LEVELS[level].themes[t].map((s,i)=>{ const [fr,en,p]=s.split("|"); return {id:i,fr,en,p}; });
+
+/* ---------- courses: t = language to learn, n = language the child already speaks ---------- */
+const COURSES = {
+  fr:{flag:"🇫🇷", t:"fr", n:"en", tts:"fr-FR", ntts:"en-GB", hello:"Bonjour !", yes:"Oui ! ", bravo:"Bravo !",
+      title:"French", blurb:"I speak English. I want to learn French."},
+  en:{flag:"🇬🇧", t:"en", n:"fr", tts:"en-GB", ntts:"fr-FR", hello:"Hello!", yes:"Yes! ", bravo:"Well done!",
+      title:"Anglais", blurb:"Je parle français. Je veux apprendre l'anglais."},
+  nb:{flag:"🇳🇴", t:"nb", n:"en", tts:"nb-NO", ntts:"en-GB", hello:"Hei!", yes:"Ja! ", bravo:"Bra jobba!",
+      title:"Norwegian", blurb:"I speak English. I want to learn Norwegian."}
+};
+const OWN = {fr:"Français", en:"English", nb:"Norsk"};
+const UI = {
+  en:{ theme:"Pick a theme", which:"Which picture is it?", hear:"Hear the sentence", next:"Next →", home:"Home", back:"← Home",
+       tap:"Tap any yellow word to hear it.", lang:{fr:"French", en:"English", nb:"Norwegian"},
+       match:t=>`Tap a ${t} word, then its English friend.`,
+       done:(t,n)=>`You finished ${t}! You won ${n} points.`,
+       novoice:l=>`The ${l} voice is missing on this tablet. Open Settings, search for Text-to-speech, and install ${l}.` },
+  fr:{ theme:"Choisis un thème", which:"C'est quelle image ?", hear:"Écouter la phrase", next:"Suivant →", home:"Accueil", back:"← Accueil",
+       tap:"Touche un mot jaune pour l'écouter.", lang:{fr:"français", en:"anglais", nb:"norvégien"},
+       match:t=>`Touche un mot en ${t}, puis son ami en français.`,
+       done:(t,n)=>`Tu as fini « ${t} » ! Tu as gagné ${n} points.`,
+       novoice:l=>`La voix pour l'${l} manque sur cette tablette. Ouvre les Paramètres, cherche « Synthèse vocale » et installe la langue.` }
+};
+let cid = "fr", C = COURSES.fr, U = UI.en;
+const tw = it => it[C.t], nw = it => it[C.n];
+
+const items = t => {
+  const L = LEVELS[level], k = Object.keys(L.themes).indexOf(t);
+  return L.themes[t].map((s,i)=>{ const [fr,en,p] = s.split("|"); return {id:i, fr, en, p, nb:NB[level][k][i]}; });
+};
 const pic = it => it.p[0]==="#" ? `<span class="swatch" style="background:${it.p}"></span>`
                  : /^\d/.test(it.p) ? `<span class="num">${it.p}</span>` : `<span>${it.p}</span>`;
 const SPK = '<svg class="spk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg>';
@@ -374,10 +468,11 @@ const synth = window.speechSynthesis;
 let voices = [];
 function loadVoices(){ try{ voices = synth.getVoices(); }catch(e){} }
 function voiceFor(lang){
-  const base = lang.slice(0,2);
-  const pool = voices.filter(v => v.lang && v.lang.replace("_","-").toLowerCase().startsWith(base));
-  return pool.find(v => v.lang.replace("_","-").toLowerCase()===lang.toLowerCase() && v.localService)
-      || pool.find(v => v.lang.replace("_","-").toLowerCase()===lang.toLowerCase())
+  const norm = v => v.lang.replace("_","-").toLowerCase();
+  const bases = lang.startsWith("nb") ? ["nb","no"] : [lang.slice(0,2)];
+  const pool = voices.filter(v => v.lang && bases.some(b => norm(v).startsWith(b)));
+  return pool.find(v => norm(v)===lang.toLowerCase() && v.localService)
+      || pool.find(v => norm(v)===lang.toLowerCase())
       || pool[0] || null;
 }
 let keep = null;
@@ -386,35 +481,44 @@ function speakNow(text, lang, retry){
     const u = new SpeechSynthesisUtterance(text);
     u.lang = lang;
     const v = retry ? null : voiceFor(lang); if(v) u.voice = v;
-    u.rate = lang==="fr-FR" ? 0.8 : 0.9;
+    u.rate = lang===C.tts ? 0.8 : 0.9;
     u.onerror = e => { if(!retry && e.error!=="interrupted" && e.error!=="canceled") setTimeout(()=> speakNow(text, lang, true), 200); };
     keep = u;
     if(synth.paused) synth.resume();
     synth.speak(u);
   }catch(e){}
 }
-function say(text, lang="fr-FR"){
-  if(native){ try{ native.speak(text, lang); }catch(e){} return; }
+function say(text, lang){
+  lang = lang || C.tts;
+  if(native){
+    try{ native.speakRate ? native.speakRate(text, lang, lang===C.tts ? 0.85 : 0.95) : native.speak(text, lang); }catch(e){}
+    return;
+  }
   if(!synth) return;
   try{
     if(synth.speaking || synth.pending){ synth.cancel(); setTimeout(()=> speakNow(text, lang), 80); }
     else speakNow(text, lang);
   }catch(e){}
 }
-if(native){
-  let tries = 0;
-  const check = () => {
-    let ok = false, up = false;
-    try{ up = native.isReady(); ok = up && native.hasVoice("fr-FR"); }catch(e){}
-    if(!up && ++tries < 10) return setTimeout(check, 500);
-    if(!ok){ $("#voicenote").hidden = false; $("#voicenote").textContent = "The French voice is missing on this tablet. Open Settings, search for Text-to-speech, and install French."; }
-  };
-  setTimeout(check, 800);
-} else if(synth){
-  loadVoices();
-  try{ synth.addEventListener("voiceschanged", loadVoices); }catch(e){}
-  setTimeout(()=>{ loadVoices(); if(voices.length && !voiceFor("fr-FR")) $("#voicenote").hidden=false; }, 1500);
-} else { $("#voicenote").hidden=false; $("#voicenote").textContent="This browser cannot read words aloud. Try opening the page in Safari or Chrome."; }
+function stopSpeech(){ try{ native ? native.stop() : synth && synth.cancel(); }catch(e){} }
+if(!native && synth){ loadVoices(); try{ synth.addEventListener("voiceschanged", loadVoices); }catch(e){} }
+/* warn on the theme page when the tablet has no voice for the language being learned */
+function checkVoice(){
+  const note = $("#voicenote"), mine = cid; note.hidden = true;
+  const warn = () => { if(cid===mine){ note.textContent = U.novoice(U.lang[C.t]); note.hidden = false; } };
+  if(native){
+    let tries = 0;
+    const check = () => {
+      let ok = false, up = false;
+      try{ up = native.isReady(); ok = up && native.hasVoice(C.tts); }catch(e){}
+      if(!up && ++tries < 10) return setTimeout(check, 500);
+      if(!ok) warn();
+    };
+    setTimeout(check, 600);
+  } else if(synth){
+    setTimeout(()=>{ loadVoices(); if(voices.length && !voiceFor(C.tts)) warn(); }, 1200);
+  } else warn();
+}
 
 /* ---------- state ---------- */
 /* which theme (0-4 within its level) each sentence belongs to */
@@ -429,20 +533,31 @@ const SMAP = [
 const THEMES = [];
 LEVELS.forEach((L,li)=> Object.keys(L.themes).forEach((name,k)=> THEMES.push({
   name, level:li, first:L.themes[name][0].split("|")[2],
-  sentences:L.sentences.filter((_,si)=> SMAP[li][si]===k)
+  sidx:L.sentences.map((_,si)=>si).filter(si=> SMAP[li][si]===k)
 })));
+const themeName = i => C.n==="fr" ? THEME_FR[i] : THEMES[i].name;
+
+/* one sentence in the language being learned, or null if that language has none yet */
+function sent(li, si){
+  const s = LEVELS[li].sentences[si]; let parts;
+  if(C.t==="fr") parts = [s[1], s[2], s[3]];
+  else {
+    const src = (C.t==="en" ? EN_S : NB_S)[li], m = src && src[si] && src[si].match(/^(.*)\[(.*)\](.*)$/);
+    if(!m) return null;
+    parts = [m[1], m[2], m[3]];
+  }
+  return {scene:s[0], before:parts[0], answer:parts[1], after:parts[2], tr: C.n==="en" ? s[4] : s[1]+s[2]+s[3], group:s[5], li};
+}
+
 let level = 0, theme = "", ti = 0, queue = [], qi = 0, stars = 0, first = true, timer = null;
 let total = 0, done = {};
-try{
-  total = +localStorage.getItem("pf-points") || 0;
-  done = JSON.parse(localStorage.getItem("pf-themes") || "{}") || {};
-}catch(e){}
+const key = k => cid==="fr" ? "pf-"+k : `pf-${k}-${cid}`;   /* each course keeps its own points and stars */
 
-function show(id){ ["home","game","done"].forEach(v => $("#"+v).hidden = v!==id); }
+function show(id){ ["pick","home","game","done"].forEach(v => $("#"+v).hidden = v!==id); }
 function addStar(){
   const n = first ? 10 : 5; stars += n; total += n;
   $("#stars").textContent = stars; $("#total").textContent = total;
-  try{ localStorage.setItem("pf-points", total); }catch(e){}
+  try{ localStorage.setItem(key("points"), total); }catch(e){}
   const box = $("#pts"); box.classList.remove("pop"); void box.offsetWidth; box.classList.add("pop");
   const f = document.createElement("span"); f.className = "plus"; f.textContent = "+" + n; box.appendChild(f);
   setTimeout(()=> f.remove(), 900);
@@ -451,30 +566,55 @@ function later(fn, ms){ clearTimeout(timer); timer = setTimeout(fn, ms); }
 function go(){ clearTimeout(timer); qi++; next(); }
 function nextButton(){
   const a = $("#answers"); a.className = "chips"; a.onclick = null;
-  a.innerHTML = '<button class="btn go" id="nextbtn">Next →</button>';
+  a.innerHTML = `<button class="btn go" id="nextbtn">${U.next}</button>`;
   $("#nextbtn").addEventListener("click", go);
 }
-
 function chunks(arr){
   const n = Math.ceil(arr.length/4), out = []; let i = 0;
   for(let k=0;k<n;k++){ const size = Math.ceil((arr.length-i)/(n-k)); out.push(arr.slice(i,i+size)); i += size; }
   return out;
 }
 
-/* ---------- home: one tile per theme ---------- */
+/* ---------- first page: choose the language to learn ---------- */
+$("#courses").innerHTML = Object.keys(COURSES).map((id,i)=>{ const c = COURSES[id];
+  return `<button class="game g${i%3+1}" data-c="${id}"><span class="ico">${c.flag}</span><span class="grow"><b>${c.title}</b><span class="d">${c.blurb}</span></span></button>`;
+}).join("");
+$("#courses").addEventListener("click", e=>{ const b=e.target.closest(".game"); if(b) selectCourse(b.dataset.c); });
+function selectCourse(id){
+  cid = id; C = COURSES[id]; U = UI[C.n];
+  total = 0; done = {};
+  try{
+    total = +localStorage.getItem(key("points")) || 0;
+    done = JSON.parse(localStorage.getItem(key("themes")) || "{}") || {};
+  }catch(e){}
+  document.documentElement.lang = C.n;
+  $("#ctitle").textContent = C.flag + " " + OWN[C.t];
+  $("#hellow").textContent = C.hello; $("#hellos").textContent = U.tap;
+  $("#lbl").textContent = U.theme; $("#back").textContent = U.back; $("#gohome").textContent = U.home;
+  $("#bravo").textContent = C.bravo;
+  drawHome(); show("home"); checkVoice(); say(C.hello);
+}
+
+/* ---------- theme page: one tile per theme ---------- */
 function drawHome(){
   $("#total").textContent = total;
   $("#levels").innerHTML = THEMES.map((T,i)=>
-    `<button class="tile2 g${i%3+1}" data-i="${i}"><span class="tpic">${pic({p:T.first})}</span><b>${T.name}</b>${done[T.name] ? '<span class="tick" aria-label="Finished">★</span>' : ""}</button>`
+    `<button class="tile2 g${i%3+1}" data-i="${i}"><span class="tpic">${pic({p:T.first})}</span><b>${themeName(i)}</b>${done[T.name] ? '<span class="tick">★</span>' : ""}</button>`
   ).join("");
 }
-drawHome();
 $("#levels").addEventListener("click", e=>{ const b=e.target.closest(".tile2"); if(b) startTheme(+b.dataset.i); });
-$("#hello").addEventListener("click", ()=> say("Bonjour !"));
+$("#hello").addEventListener("click", ()=> say(C.hello));
+$("#change").addEventListener("click", ()=>{ stopSpeech(); show("pick"); });
 $("#back").addEventListener("click", home);
 $("#gohome").addEventListener("click", home);
 $("#again").addEventListener("click", ()=>{ if(ti < THEMES.length-1) startTheme(ti+1); else home(); });
-function home(){ clearTimeout(timer); try{ native ? native.stop() : synth && synth.cancel(); }catch(e){} drawHome(); show("home"); }
+function home(){ clearTimeout(timer); stopSpeech(); drawHome(); show("home"); }
+/* the tablet's back button: exercise -> themes -> language choice -> leave the app */
+window.goBack = function(){
+  if(!$("#pick").hidden) return "exit";
+  if(!$("#home").hidden){ stopSpeech(); show("pick"); return "stay"; }
+  home(); return "stay";
+};
 
 /* a theme runs: hear about four words, match those words, repeat, then its sentences */
 function startTheme(i){
@@ -483,7 +623,7 @@ function startTheme(i){
     set.forEach(item => queue.push({k:"listen", item}));
     queue.push({k:"match", set});
   });
-  shuffle(T.sentences).forEach(s => queue.push({k:"sentence", s}));
+  shuffle(T.sidx.map(si => sent(T.level, si)).filter(Boolean)).forEach(s => queue.push({k:"sentence", s}));
   qi = 0; stars = 0; $("#stars").textContent = 0;
   show("game"); next();
 }
@@ -500,46 +640,46 @@ function next(){
 }
 function finish(){
   done[theme] = (done[theme] || 0) + 1;
-  try{ localStorage.setItem("pf-themes", JSON.stringify(done)); }catch(e){}
+  try{ localStorage.setItem(key("themes"), JSON.stringify(done)); }catch(e){}
   const last = ti >= THEMES.length-1;
   $("#bigstars").textContent = "★ " + stars;
-  $("#donetext").textContent = `You finished ${theme}! You won ${stars} points.`;
-  $("#again").textContent = last ? "Home" : "Next →";
+  $("#donetext").textContent = U.done(themeName(ti), stars);
+  $("#again").textContent = last ? U.home : U.next;
   $("#gohome").hidden = last;
-  show("done"); say("Bravo !");
+  show("done"); say(C.bravo);
 }
 
 /* ---------- hear the word, find the picture ---------- */
 function qListen(target){
   const opts = shuffle([target, ...shuffle(items(theme).filter(i=>i.id!==target.id)).slice(0,3)]);
-  $("#stage").innerHTML = `<p class="hint">Which picture is it?</p><button class="fr" id="word">${SPK}<span>${target.fr}</span></button>`;
-  $("#word").addEventListener("click", ()=> say(target.fr));
+  $("#stage").innerHTML = `<p class="hint">${U.which}</p><button class="fr" id="word">${SPK}<span>${tw(target)}</span></button>`;
+  $("#word").addEventListener("click", ()=> say(tw(target)));
   const a = $("#answers"); a.className = "answers pics";
-  a.innerHTML = opts.map(o=>`<button class="card" data-id="${o.id}" aria-label="${o.en}">${pic(o)}</button>`).join("");
+  a.innerHTML = opts.map(o=>`<button class="card" data-id="${o.id}" aria-label="${nw(o)}">${pic(o)}</button>`).join("");
   a.onclick = e => {
     const c = e.target.closest(".card"); if(!c || a.dataset.lock) return;
     if(+c.dataset.id === target.id){
-      a.dataset.lock = "1"; c.classList.add("ok","pop"); addStar(); say("Oui ! " + target.fr);
+      a.dataset.lock = "1"; c.classList.add("ok","pop"); addStar(); say(C.yes + tw(target));
       later(go, 1400);
     } else { first = false; c.classList.add("shake"); setTimeout(()=>c.classList.add("gone"), 400); }
   };
   const mine = qi;
-  if(qi===0) say(target.fr);
-  else setTimeout(()=>{ if(qi===mine && !$("#game").hidden && !a.dataset.lock) say(target.fr); }, 350);
+  if(qi===0) say(tw(target));
+  else setTimeout(()=>{ if(qi===mine && !$("#game").hidden && !a.dataset.lock) say(tw(target)); }, 350);
 }
 
-/* ---------- match French and English ---------- */
+/* ---------- match the new language with the one the child speaks ---------- */
 function qMatch(set){
-  $("#stage").innerHTML = `<p class="hint">Tap a French word, then its English friend.</p>
-    <div class="match"><div class="col"><p class="colhead">Français</p>${shuffle(set).map(o=>`<button class="tile f" data-id="${o.id}" data-side="f">${o.fr}</button>`).join("")}</div>
-    <div class="col"><p class="colhead">English</p>${shuffle(set).map(o=>`<button class="tile e" data-id="${o.id}" data-side="e">${o.en}</button>`).join("")}</div></div>`;
+  $("#stage").innerHTML = `<p class="hint">${U.match(U.lang[C.t])}</p>
+    <div class="match"><div class="col"><p class="colhead">${OWN[C.t]}</p>${shuffle(set).map(o=>`<button class="tile f" data-id="${o.id}" data-side="f">${tw(o)}</button>`).join("")}</div>
+    <div class="col"><p class="colhead">${OWN[C.n]}</p>${shuffle(set).map(o=>`<button class="tile e" data-id="${o.id}" data-side="e">${nw(o)}</button>`).join("")}</div></div>`;
   const a = $("#answers"); a.className = ""; a.innerHTML = "";
   let pickF = null, pickE = null, left = set.length; const missed = new Set(); const mine = qi;
   $("#stage").onclick = e => {
     const t = e.target.closest(".tile"); if(!t || t.classList.contains("ok")) return;
     const it = set.find(o=>o.id===+t.dataset.id);
-    if(t.dataset.side==="f"){ say(it.fr); pickF && pickF.classList.remove("sel"); pickF = t; }
-    else { say(it.en, "en-GB"); pickE && pickE.classList.remove("sel"); pickE = t; }
+    if(t.dataset.side==="f"){ say(tw(it)); pickF && pickF.classList.remove("sel"); pickF = t; }
+    else { say(nw(it), C.ntts); pickE && pickE.classList.remove("sel"); pickE = t; }
     t.classList.add("sel");
     if(!pickF || !pickE) return;
     const f = pickF, en = pickE; pickF = pickE = null;
@@ -548,7 +688,7 @@ function qMatch(set){
       [f,en].forEach(x=>x.classList.add("ok","pop"));
       en.insertAdjacentHTML("afterbegin", pic(it));
       first = !missed.has(it.id); addStar();
-      setTimeout(()=>{ if(qi===mine && !$("#game").hidden) say(it.fr); }, 700);
+      setTimeout(()=>{ if(qi===mine && !$("#game").hidden) say(tw(it)); }, 700);
       if(--left===0){ $("#stage").onclick = null; nextButton(); }
     } else {
       missed.add(+f.dataset.id);
@@ -558,13 +698,14 @@ function qMatch(set){
 }
 
 /* ---------- drag the word into the sentence ---------- */
-function qSentence(s){
-  const [scene, before, answer, after, en, group] = s;
-  const others = shuffle(LEVELS[level].sentences.filter(x=>x[5]===group && x[2]!==answer)).slice(0,2).map(x=>x[2]);
+function qSentence(S){
+  const {scene, before, answer, after, tr, group, li} = S;
+  const pool = LEVELS[li].sentences.map((x,si)=> x[5]===group ? sent(li,si) : null).filter(Boolean).map(o=>o.answer);
+  const others = shuffle([...new Set(pool)].filter(w => w!==answer)).slice(0,2);
   const opts = shuffle([answer, ...others]);
   $("#stage").innerHTML = `<div class="scene">${scene}</div>
-    <p class="sentence">${before}<button class="blank" id="blank" aria-label="Empty space for the missing word"></button>${after}</p>
-    <p class="en">${en}</p><button class="listen" id="hear">${SPK} Hear the sentence</button>`;
+    <p class="sentence">${before}<button class="blank" id="blank"></button>${after}</p>
+    <p class="en">${tr}</p><button class="listen" id="hear">${SPK} ${U.hear}</button>`;
   const full = before + answer + after;
   $("#hear").addEventListener("click", ()=> say(full));
   const a = $("#answers"); a.className = "chips";
