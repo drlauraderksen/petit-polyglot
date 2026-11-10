@@ -72,6 +72,10 @@ h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;mar
 .game .d{display:block}
 .ico.num{font-family:var(--display);font-weight:800}
 .btn.go{background:#8FE3C0}
+.mic{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--coral);color:#fff;
+  border:3px solid var(--ink);box-shadow:0 5px 0 var(--ink)}
+.mic.rec{background:#D21F1F;animation:pulse .7s infinite alternate}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.15)}}
 .words{grid-template-columns:1fr}
 .wbtn{font-family:var(--display);font-weight:800;font-size:1.6rem;line-height:1.15;min-height:62px;padding:8px 14px;background:var(--sun);
   border:3px solid var(--ink);border-radius:20px;box-shadow:0 5px 0 var(--ink);overflow-wrap:anywhere}
@@ -155,7 +159,7 @@ h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;mar
 .btn{font-family:var(--display);font-weight:800;font-size:1.5rem;border:3px solid var(--ink);border-radius:20px;padding:10px 26px;box-shadow:0 5px 0 var(--ink);background:var(--sun)}
 .btn.alt{background:var(--paper)}
 .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-@media (prefers-reduced-motion:reduce){.shake,.pop{animation:none}.plus{animation-duration:.01s}.chip{transition:none}}
+@media (prefers-reduced-motion:reduce){.shake,.pop,.mic.rec{animation:none}.plus{animation-duration:.01s}.chip{transition:none}}
 </style>
 </head>
 <body>
@@ -752,21 +756,21 @@ const LANG = {
 const OWN = {fr:"Français", en:"English", nb:"Norsk"};
 const UI = {
   en:{ theme:"Pick a theme", which:"Which picture is it?", hear:"Hear the sentence", next:"Next →", home:"Home", back:"← Home",
-       tap:"Tap any yellow word to hear it.", cont:"Continue", listenq:"Listen. Which one is it?", pickw:"Which word is it?",
+       tap:"Tap any yellow word to hear it.", sayit:"Your turn! Tap the microphone and say it.", cont:"Continue", listenq:"Listen. Which one is it?", pickw:"Which word is it?",
        part:(a,b)=>`Part ${a} of ${b}`, partdone:(a,b,n)=>`Part ${a} of ${b} done. You won ${n} points.`,
        practice:"Practise my words", pcount:n=>`${n} words learned so far`, pdone:n=>`Practice done! You won ${n} points.`, learn:"What do you want to learn?", lang:{fr:"French", en:"English", nb:"Norwegian"},
        match:t=>`Tap a ${t} word, then its English friend.`,
        done:(t,n)=>`You finished ${t}! You won ${n} points.`,
        novoice:l=>`The ${l} voice is missing on this tablet. Open Settings, search for Text-to-speech, and install ${l}.` },
   fr:{ theme:"Choisis un thème", which:"C'est quelle image ?", hear:"Écouter la phrase", next:"Suivant →", home:"Accueil", back:"← Accueil",
-       tap:"Touche un mot jaune pour l'écouter.", cont:"Continuer", listenq:"Écoute. C'est lequel ?", pickw:"C'est quel mot ?",
+       tap:"Touche un mot jaune pour l'écouter.", sayit:"À toi ! Touche le micro et dis le mot.", cont:"Continuer", listenq:"Écoute. C'est lequel ?", pickw:"C'est quel mot ?",
        part:(a,b)=>`Partie ${a} sur ${b}`, partdone:(a,b,n)=>`Partie ${a} sur ${b} finie. Tu as gagné ${n} points.`,
        practice:"Réviser mes mots", pcount:n=>`${n} mots appris`, pdone:n=>`Révision finie ! Tu as gagné ${n} points.`, learn:"Que veux-tu apprendre ?", lang:{fr:"français", en:"anglais", nb:"norvégien"},
        match:t=>`Touche un mot en ${t}, puis son ami en français.`,
        done:(t,n)=>`Tu as fini « ${t} » ! Tu as gagné ${n} points.`,
        novoice:l=>`La voix pour la langue « ${l} » manque sur cette tablette. Ouvre les Paramètres, cherche « Synthèse vocale » et installe la langue.` },
   nb:{ theme:"Velg et tema", which:"Hvilket bilde er det?", hear:"Hør setningen", next:"Neste →", home:"Hjem", back:"← Hjem",
-       tap:"Trykk på et gult ord for å høre det.", cont:"Fortsett", listenq:"Hør. Hvilken er det?", pickw:"Hvilket ord er det?",
+       tap:"Trykk på et gult ord for å høre det.", sayit:"Din tur! Trykk på mikrofonen og si ordet.", cont:"Fortsett", listenq:"Hør. Hvilken er det?", pickw:"Hvilket ord er det?",
        part:(a,b)=>`Del ${a} av ${b}`, partdone:(a,b,n)=>`Del ${a} av ${b} er ferdig. Du fikk ${n} poeng.`,
        practice:"Øv på ordene mine", pcount:n=>`${n} ord lært så langt`, pdone:n=>`Ferdig med øvingen! Du fikk ${n} poeng.`, learn:"Hva vil du lære?", lang:{fr:"fransk", en:"engelsk", nb:"norsk"},
        match:t=>`Trykk på et ord på ${t}, og så vennen på norsk.`,
@@ -859,7 +863,11 @@ function say(text, lang){
     else speakNow(text, lang);
   }catch(e){}
 }
-function stopSpeech(){ try{ native ? native.stop() : synth && synth.cancel(); }catch(e){} }
+function stopSpeech(){ try{ native ? native.stop() : synth && synth.cancel(); }catch(e){} try{ recorder && recorder.halt(); }catch(e){} }
+/* the tablet app can record the child's voice and play it back; a plain browser cannot, so the step is skipped there */
+const recorder = window.AndroidRec || null;
+let micOff = false;
+const MIC = '<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0013 0M12 17.5V21M8.5 21h7"/></svg>';
 if(!native && synth){ loadVoices(); try{ synth.addEventListener("voiceschanged", loadVoices); }catch(e){} }
 /* warn on the theme page when the tablet has no voice for the language being learned */
 function checkVoice(){
@@ -1115,6 +1123,7 @@ function partSteps(set, full){
   const st = [];
   if(full) set.forEach(item => { if(item.p) st.push({k:"listen", item}); });
   st.push({k:"match", set});
+  if(full && recorder && !micOff) shuffle(set).slice(0,2).forEach(item => st.push({k:"say", item}));
   shuffle(set).forEach(item => st.push({k: Math.random() < 0.5 ? "hear" : "pick", item}));
   if(full && !set.some(x => x.p)) st.push({k:"match", set});
   return st;
@@ -1152,7 +1161,9 @@ function next(){
   $("#bar").firstElementChild.style.width = (qi/queue.length*100) + "%";
   $("#stage").onclick = null; const a = $("#answers"); a.onclick = null; delete a.dataset.lock;
   const step = queue[qi];
-  if(step.k==="listen") qListen(step.item);
+  if(step.k==="say" && (!recorder || micOff)){ qi++; return next(); }   /* no microphone: skip the step */
+  if(step.k==="say") qSay(step.item);
+  else if(step.k==="listen") qListen(step.item);
   else if(step.k==="hear") qHear(step.item);
   else if(step.k==="pick") qPick(step.item);
   else if(step.k==="match") qMatch(step.set);
@@ -1208,6 +1219,48 @@ function qHear(target){
   }
   const mine = qi;
   setTimeout(()=>{ if(qi===mine && !$("#game").hidden && !a.dataset.lock) say(tw(target)); }, 350);
+}
+
+/* ---------- say it: record a few seconds, then hear yourself and the model voice ---------- */
+function qSay(target){
+  $("#stage").innerHTML = `<p class="hint">${U.sayit}</p>` + (target.p ? `<div class="scene">${pic(target)}</div>` : "")
+    + `<button class="fr" id="word">${SPK}<span>${tw(target)}</span></button><button class="mic" id="mic" aria-label="Record">${MIC}</button>`;
+  $("#word").addEventListener("click", ()=> say(tw(target)));
+  nextButton();                                   /* always there, so he can move on without recording */
+  const mic = $("#mic"), mine = qi; let busy = false, got = false;
+  const alive = () => qi===mine && !$("#game").hidden;
+  function record(){
+    busy = true; mic.disabled = true; stopSpeech(); mic.classList.add("rec");
+    try{ recorder.start(); }catch(e){}
+    setTimeout(()=>{
+      try{ recorder.stop(); }catch(e){}
+      mic.classList.remove("rec");
+      if(!alive()) return;
+      let once = false;
+      const after = () => {                       /* after his own voice, the model says it again */
+        if(once) return; once = true; window.onPlayDone = null;
+        if(!alive()) return;
+        busy = false; mic.disabled = false; say(tw(target));
+        if(!got){ got = true; first = true; addStar(); }
+      };
+      window.onPlayDone = after;
+      setTimeout(()=>{ try{ recorder.play(); }catch(e){ after(); } }, 200);
+      setTimeout(after, 4500);
+    }, 2600);
+  }
+  window.onRecError = () => mic.classList.remove("rec");
+  mic.addEventListener("click", ()=>{
+    if(busy) return;
+    let ok = false; try{ ok = recorder.canRecord(); }catch(e){}
+    if(ok) return record();
+    window.onMicPermission = granted => {
+      window.onMicPermission = null;
+      if(!alive()) return;
+      if(granted) record(); else { micOff = true; go(); }   /* permission refused: no more say-it steps */
+    };
+    try{ recorder.askPermission(); }catch(e){ micOff = true; go(); }
+  });
+  setTimeout(()=>{ if(alive() && !busy) say(tw(target)); }, 350);
 }
 
 /* ---------- see the picture (or the word he knows): which word is it? ---------- */

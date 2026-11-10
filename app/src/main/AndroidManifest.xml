@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- For the "say it" step: the recording stays on the tablet. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Lets the app find the tablet's text-to-speech engine. No internet permission: the app is fully offline. -->
     <queries>
         <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
