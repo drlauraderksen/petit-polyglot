@@ -389,6 +389,19 @@ const LEVELS = [
     "Shapes and signs": ["le cercle|circle|⭕","le carré|square|⬛","le triangle|triangle|🔺","la flèche|arrow|➡️","la croix|cross|✖️","le point d'interrogation|question mark|❓","le point d'exclamation|exclamation mark|❗","plus|plus|➕","moins|minus|➖","le panneau stop|stop sign|🛑","la bulle|speech bubble|💬","le recyclage|recycling|♻️"]
    },
    sentences: []
+ },
+ /* common words with no natural picture: these themes use the matching game only */
+ { themes: {
+    "You and me": ["je|I|","tu|you|","il|he|","elle|she|","nous|we|","vous|you all|","ils|they|","moi|me|","mon ami|my friend|","tout le monde|everyone|"],
+    "Little words": ["et|and|","ou|or|","mais|but|","avec|with|","sans|without|","pour|for|","dans|in|","sur|on|","sous|under|","très|very|","aussi|also|","pas|not|"],
+    "Question words": ["qui|who|","quoi|what|","où|where|","quand|when|","pourquoi|why|","comment|how|","combien|how many|","quel|which|","parce que|because|","peut-être|maybe|"],
+    "Big and small": ["grand|big|","petit|small|","bon|good|","mauvais|bad|","nouveau|new|","vieux|old|","rapide|fast|","lent|slow|","beau|beautiful|","gentil|kind|","fort|strong|","facile|easy|"],
+    Days: ["lundi|Monday|","mardi|Tuesday|","mercredi|Wednesday|","jeudi|Thursday|","vendredi|Friday|","samedi|Saturday|","dimanche|Sunday|","aujourd'hui|today|","demain|tomorrow|","hier|yesterday|"],
+    "Time words": ["maintenant|now|","plus tard|later|","toujours|always|","jamais|never|","le matin|morning|","le soir|evening|","la semaine|week|","le mois|month|","l'année|year|","la minute|minute|"],
+    "Useful verbs": ["être|to be|","avoir|to have|","aller|to go|","vouloir|to want|","pouvoir|to be able to|","aimer|to like|","faire|to do|","voir|to see|","manger|to eat|","boire|to drink|","jouer|to play|","donner|to give|"],
+    Family: ["le frère|brother|","la sœur|sister|","l'oncle|uncle|","la tante|aunt|","le cousin|cousin|","l'ami|friend|","les parents|parents|","le fils|son|","l'enfant|child|","le voisin|neighbour|"]
+   },
+   sentences: []
  }
 ];
 
@@ -437,7 +450,15 @@ const NB = [
  [ ["en sanger","en forsker","en dommer","en mekaniker","en vakt","en detektiv","en bygningsarbeider","en brud","en engel","en superhelt","en cowboy","en zombie"],
    ["en koffert","et kompass","en statue","en parasoll","en billett","et pariserhjul","en karusell","en berg-og-dal-bane","en campingplass","en park","en soloppgang","solbriller"],
    ["en ballong","kort","sjakk","dart","biljard","hodetelefoner","en saksofon","et piano","et filmkamera","en jojo","et teater","en film"],
-   ["en sirkel","en firkant","en trekant","en pil","et kryss","et spørsmålstegn","et utropstegn","pluss","minus","et stoppskilt","en snakkeboble","resirkulering"] ]
+   ["en sirkel","en firkant","en trekant","en pil","et kryss","et spørsmålstegn","et utropstegn","pluss","minus","et stoppskilt","en snakkeboble","resirkulering"] ],
+ [ ["jeg","du","han","hun","vi","dere","de","meg","vennen min","alle"],
+   ["og","eller","men","med","uten","for","i","på","under","veldig","også","ikke"],
+   ["hvem","hva","hvor","når","hvorfor","hvordan","hvor mange","hvilken","fordi","kanskje"],
+   ["stor","liten","god","dårlig","ny","gammel","rask","treg","vakker","snill","sterk","lett"],
+   ["mandag","tirsdag","onsdag","torsdag","fredag","lørdag","søndag","i dag","i morgen","i går"],
+   ["nå","senere","alltid","aldri","en morgen","en kveld","en uke","en måned","et år","et minutt"],
+   ["å være","å ha","å dra","å ville","å kunne","å like","å gjøre","å se","å spise","å drikke","å leke","å gi"],
+   ["en bror","en søster","en onkel","en tante","en fetter","en venn","foreldre","en sønn","et barn","en nabo"] ]
 ];
 
 /* ---------- Norwegian "the" forms (Oslo usage: "en bok" but "boka"); "" where a word has none ---------- */
@@ -485,7 +506,11 @@ const NBD = [
  [ ["sangeren","forskeren","dommeren","mekanikeren","vakten","detektiven","bygningsarbeideren","bruden","engelen","superhelten","cowboyen","zombien"],
    ["kofferten","kompasset","statuen","parasollen","billetten","pariserhjulet","karusellen","berg-og-dal-banen","campingplassen","parken","soloppgangen",""],
    ["ballongen","","","","","","saksofonen","pianoet","filmkameraet","jojoen","teateret","filmen"],
-   ["sirkelen","firkanten","trekanten","pila","krysset","spørsmålstegnet","utropstegnet","","","stoppskiltet","snakkebobla",""] ]
+   ["sirkelen","firkanten","trekanten","pila","krysset","spørsmålstegnet","utropstegnet","","","stoppskiltet","snakkebobla",""] ],
+ [ [], [], [], [], [],
+   ["","","","","morgenen","kvelden","uka","måneden","året","minuttet"],
+   [],
+   ["broren","søstera","onkelen","tanta","fetteren","vennen","","sønnen","barnet","naboen"] ]
 ];
 
 /* ---------- English sentences, same order as the French ones; [brackets] mark the missing word ---------- */
@@ -532,7 +557,9 @@ const NB_S = [
 ];
 
 /* theme names for French-speaking learners */
-const THEME_FR = ["Les animaux","La nourriture","Les couleurs","Mon monde","Les nombres 1–10","Animaux sauvages","Mon corps","Les vêtements","Les gens","Encore à manger","Dehors","Ça roule, ça vole","À la maison","Les émotions","Les nombres 11–20","On joue","Ferme et jardin","Au bord de l'eau","Fruits et légumes","Le goûter","Les métiers","En ville","Objets utiles","Terre et espace","Grands nombres","Contes et légendes","La fête","Animaux du zoo","Les actions","Mots gentils","À l'école","Les sports","Dans la maison","Les outils","Sur la route","On s'habille","Encore des animaux","Au jardin","Chez le docteur","À table","Encore des gens","En vacances","Jeux et spectacles","Formes et signes"];
+const THEME_FR = ["Les animaux","La nourriture","Les couleurs","Mon monde","Les nombres 1–10","Animaux sauvages","Mon corps","Les vêtements","Les gens","Encore à manger","Dehors","Ça roule, ça vole","À la maison","Les émotions","Les nombres 11–20","On joue","Ferme et jardin","Au bord de l'eau","Fruits et légumes","Le goûter","Les métiers","En ville","Objets utiles","Terre et espace","Grands nombres","Contes et légendes","La fête","Animaux du zoo","Les actions","Mots gentils","À l'école","Les sports","Dans la maison","Les outils","Sur la route","On s'habille","Encore des animaux","Au jardin","Chez le docteur","À table","Encore des gens","En vacances","Jeux et spectacles","Formes et signes","Je, tu, il…","Petits mots","Les questions","Grand ou petit","Les jours","Le temps qui passe","Verbes utiles","La famille"];
+/* tile pictures for themes whose words have none */
+const ICON = {"You and me":"👥","Little words":"🔤","Question words":"❓","Big and small":"⚖️","Days":"📆","Time words":"⏳","Useful verbs":"🤸","Family":"👨‍👩‍👧"};
 
 const $ = s => document.querySelector(s);
 const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
@@ -656,7 +683,7 @@ const SMAP = [
 ];
 const THEMES = [];
 LEVELS.forEach((L,li)=> Object.keys(L.themes).forEach((name,k)=> THEMES.push({
-  name, level:li, first:L.themes[name][0].split("|")[2],
+  name, level:li, first:ICON[name] || L.themes[name][0].split("|")[2],
   sidx:L.sentences.map((_,si)=>si).filter(si=> SMAP[li][si]===k)
 })));
 const themeName = i => C.n==="fr" ? THEME_FR[i] : THEMES[i].name;
@@ -743,10 +770,13 @@ window.goBack = function(){
 /* a theme runs: hear about four words, match those words, repeat, then its sentences */
 function startTheme(i){
   ti = i; const T = THEMES[i]; level = T.level; theme = T.name; queue = [];
-  chunks(shuffle(items(theme))).forEach(set=>{
+  const its = shuffle(items(theme));
+  if(its.some(x => x.p)) chunks(its).forEach(set=>{
     set.forEach(item => queue.push({k:"listen", item}));
     queue.push({k:"match", set});
   });
+  else for(let round=0; round<2; round++)      /* words without pictures: matching only, each word twice */
+    chunks(shuffle(its)).forEach(set => queue.push({k:"match", set}));
   shuffle(T.sidx.map(si => sent(T.level, si)).filter(Boolean)).forEach(s => queue.push({k:"sentence", s}));
   qi = 0; stars = 0; $("#stars").textContent = 0;
   show("game"); next();
@@ -810,7 +840,7 @@ function qMatch(set){
     f.classList.remove("sel"); en.classList.remove("sel");
     if(f.dataset.id === en.dataset.id){
       [f,en].forEach(x=>x.classList.add("ok","pop"));
-      en.insertAdjacentHTML("afterbegin", pic(it));
+      if(it.p) en.insertAdjacentHTML("afterbegin", pic(it));
       first = !missed.has(it.id); addStar();
       setTimeout(()=>{ if(qi===mine && !$("#game").hidden) say(tw(it)); }, 700);
       if(--left===0){ $("#stage").onclick = null; nextButton(); }
