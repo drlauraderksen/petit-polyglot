@@ -71,6 +71,15 @@ h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;mar
 .game .d{display:block}
 .ico.num{font-family:var(--display);font-weight:800}
 .btn.go{background:#8FE3C0}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-bottom:8px}
+@media (min-width:480px){.tiles{grid-template-columns:1fr 1fr 1fr}}
+.tile2{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:112px;padding:12px 8px;
+  border:3px solid var(--ink);border-radius:22px;box-shadow:0 5px 0 var(--ink);text-align:center;overflow-wrap:anywhere}
+.tile2:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)}
+.tile2 b{font-family:var(--display);font-weight:800;font-size:1.15rem;line-height:1.1}
+.tpic{font-size:2.4rem;line-height:1.15;display:grid;place-items:center;min-height:1.15em}
+.tpic .swatch{width:1em;height:1em}
+.tick{position:absolute;top:4px;right:10px;font-size:1.3rem}
 .stage{flex:1;min-height:0;background:var(--paper);border:3px solid var(--ink);border-radius:28px;padding:16px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;overflow:auto}
 .hint{font-size:1rem;opacity:.75;margin:0}
@@ -142,8 +151,8 @@ h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;mar
     </button>
     <p class="note" id="voicenote" hidden>This device has no French voice installed, so words may sound wrong. Add French under your device's text-to-speech settings.</p>
 
-    <p class="label">Pick a level</p>
-    <div class="games" id="levels"></div>
+    <p class="label">Pick a theme</p>
+    <div class="tiles" id="levels"></div>
   </section>
 
   <section id="game" hidden>
@@ -194,7 +203,16 @@ const LEVELS = [
     ["⚽","Je joue avec ","le ballon",".","I play with the ball.","o"],
     ["🍞","Je mange ","du pain",".","I eat bread.","o"],
     ["🦋","Je vois ","un papillon",".","I see a butterfly.","o"],
-    ["🎩","Je porte ","un chapeau",".","I wear a hat.","o"]
+    ["🎩","Je porte ","un chapeau",".","I wear a hat.","o"],
+    ["🍎","La pomme est ","rouge",".","The apple is red.","c"],
+    ["☀️","Le soleil est ","jaune",".","The sun is yellow.","c"],
+    ["🐟","Le poisson est ","bleu",".","The fish is blue.","c"],
+    ["🌳","L'arbre est ","vert",".","The tree is green.","c"],
+    ["🌸","La fleur est ","rose",".","The flower is pink.","c"],
+    ["🐱🐱","J'ai ","deux"," chats.","I have two cats.","n"],
+    ["🍎🍎🍎","J'ai ","trois"," pommes.","I have three apples.","n"],
+    ["⚽⚽⚽⚽","J'ai ","quatre"," ballons.","I have four balls.","n"],
+    ["⭐⭐⭐⭐⭐","J'ai ","cinq"," étoiles.","I have five stars.","n"]
    ]
  },
  { themes: {
@@ -246,7 +264,12 @@ const LEVELS = [
     ["👦😢","Le garçon est ","triste",".","The boy is sad.","a"],
     ["👧😀","La fille est ","contente",".","The girl is happy.","a"],
     ["🍋","Le citron est ","jaune",".","The lemon is yellow.","a"],
-    ["🌳","L'arbre est ","vert",".","The tree is green.","a"]
+    ["🌳","L'arbre est ","vert",".","The tree is green.","a"],
+    ["✈️☁️","","L'avion"," vole dans le ciel.","The plane flies in the sky.","s"],
+    ["⛵","","Le bateau"," flotte sur l'eau.","The boat floats on the water.","s"],
+    ["🚀","","La fusée"," va dans l'espace.","The rocket goes into space.","s"],
+    ["🚆","","Le train"," roule sur les rails.","The train runs on the rails.","s"],
+    ["🚌🏫","","Le bus"," va à l'école.","The bus goes to school.","s"]
    ]
  }
  ,
@@ -394,13 +417,25 @@ if(native){
 } else { $("#voicenote").hidden=false; $("#voicenote").textContent="This browser cannot read words aloud. Try opening the page in Safari or Chrome."; }
 
 /* ---------- state ---------- */
-const PARTS = 8;
-let level = 0, theme = "", cur = 0, lessons = [], queue = [], qi = 0, stars = 0, first = true, timer = null;
-let total = 0, prog = LEVELS.map(()=>0);
+/* which theme (0-4 within its level) each sentence belongs to */
+const SMAP = [
+  [0,0,3,0,0,3,3,0,0,1,1,3,3,1,0,3, 2,2,2,2,2, 4,4,4,4],
+  [0,0,0,0,3,0,3,0,2,2,1,1,4,4,2,2],
+  [0,0,0,2,2,2,2,0,3,3,3,3,3,3,0,0, 1,1,1,1,1],
+  [1,1,1,2,1,1,0,2,0,0,0,0,4,3,4,0,0,4],
+  [0,0,0,0,0,0,1,1,1,1,1,3,2,2,2,2,2,2],
+  [3,3,3,3,3,3,3,3,0,0,0,2,2,1,2,1,4,4,4,4]
+];
+const THEMES = [];
+LEVELS.forEach((L,li)=> Object.keys(L.themes).forEach((name,k)=> THEMES.push({
+  name, level:li, first:L.themes[name][0].split("|")[2],
+  sentences:L.sentences.filter((_,si)=> SMAP[li][si]===k)
+})));
+let level = 0, theme = "", ti = 0, queue = [], qi = 0, stars = 0, first = true, timer = null;
+let total = 0, done = {};
 try{
   total = +localStorage.getItem("pf-points") || 0;
-  const p = JSON.parse(localStorage.getItem("pf-prog") || "[]");
-  prog = prog.map((_,i)=> Math.min(PARTS, Math.max(0, +p[i] || 0)));
+  done = JSON.parse(localStorage.getItem("pf-themes") || "{}") || {};
 }catch(e){}
 
 function show(id){ ["home","game","done"].forEach(v => $("#"+v).hidden = v!==id); }
@@ -420,52 +455,35 @@ function nextButton(){
   $("#nextbtn").addEventListener("click", go);
 }
 
-/* ---------- a level is 8 parts: word sets with sentence parts in between ---------- */
-function lessonsFor(l){
-  const L = LEVELS[l], names = Object.keys(L.themes), c = Math.ceil(L.sentences.length/3);
-  const W = i => ({type:"words", theme:names[i]});
-  const S = i => ({type:"sentences", list:L.sentences.slice(i*c,(i+1)*c)});
-  return [W(0),W(1),S(0),W(2),W(3),S(1),W(4),S(2)];
-}
 function chunks(arr){
   const n = Math.ceil(arr.length/4), out = []; let i = 0;
   for(let k=0;k<n;k++){ const size = Math.ceil((arr.length-i)/(n-k)); out.push(arr.slice(i,i+size)); i += size; }
   return out;
 }
 
-/* ---------- home ---------- */
+/* ---------- home: one tile per theme ---------- */
 function drawHome(){
   $("#total").textContent = total;
-  $("#levels").innerHTML = LEVELS.map((L,i)=>{
-    const d = prog[i];
-    const text = d>=PARTS ? "Finished. Tap to play again." : d ? `Part ${d+1} of ${PARTS}` : "Tap to start";
-    return `<button class="game g${i%3+1}" data-l="${i}"><span class="ico num">${i+1}</span><span class="grow"><b>Level ${i+1}</b><span class="d">${text}</span><span class="meter"><i style="width:${d/PARTS*100}%"></i></span></span></button>`;
-  }).join("");
+  $("#levels").innerHTML = THEMES.map((T,i)=>
+    `<button class="tile2 g${i%3+1}" data-i="${i}"><span class="tpic">${pic({p:T.first})}</span><b>${T.name}</b>${done[T.name] ? '<span class="tick" aria-label="Finished">★</span>' : ""}</button>`
+  ).join("");
 }
 drawHome();
-$("#levels").addEventListener("click", e=>{ const b=e.target.closest(".game"); if(b) startLevel(+b.dataset.l); });
+$("#levels").addEventListener("click", e=>{ const b=e.target.closest(".tile2"); if(b) startTheme(+b.dataset.i); });
 $("#hello").addEventListener("click", ()=> say("Bonjour !"));
 $("#back").addEventListener("click", home);
 $("#gohome").addEventListener("click", home);
-$("#again").addEventListener("click", ()=>{ if(cur < PARTS) startLesson(); else if(level < LEVELS.length-1) startLevel(level+1); else home(); });
+$("#again").addEventListener("click", ()=>{ if(ti < THEMES.length-1) startTheme(ti+1); else home(); });
 function home(){ clearTimeout(timer); try{ native ? native.stop() : synth && synth.cancel(); }catch(e){} drawHome(); show("home"); }
 
-function startLevel(l){
-  level = l; lessons = lessonsFor(l);
-  cur = prog[l] >= PARTS ? 0 : prog[l];
-  startLesson();
-}
-function startLesson(){
-  const L = lessons[cur]; queue = [];
-  if(L.type==="words"){
-    theme = L.theme;
-    chunks(shuffle(items(theme))).forEach(set=>{
-      set.forEach(item => queue.push({k:"listen", item}));
-      queue.push({k:"match", set});
-    });
-  } else {
-    shuffle(L.list).forEach(s => queue.push({k:"sentence", s}));
-  }
+/* a theme runs: hear about four words, match those words, repeat, then its sentences */
+function startTheme(i){
+  ti = i; const T = THEMES[i]; level = T.level; theme = T.name; queue = [];
+  chunks(shuffle(items(theme))).forEach(set=>{
+    set.forEach(item => queue.push({k:"listen", item}));
+    queue.push({k:"match", set});
+  });
+  shuffle(T.sentences).forEach(s => queue.push({k:"sentence", s}));
   qi = 0; stars = 0; $("#stars").textContent = 0;
   show("game"); next();
 }
@@ -481,13 +499,13 @@ function next(){
   else qSentence(step.s);
 }
 function finish(){
-  cur++;
-  if(cur > prog[level]){ prog[level] = cur; try{ localStorage.setItem("pf-prog", JSON.stringify(prog)); }catch(e){} }
-  const levelDone = cur >= PARTS, last = level >= LEVELS.length-1;
+  done[theme] = (done[theme] || 0) + 1;
+  try{ localStorage.setItem("pf-themes", JSON.stringify(done)); }catch(e){}
+  const last = ti >= THEMES.length-1;
   $("#bigstars").textContent = "★ " + stars;
-  $("#donetext").textContent = levelDone ? `Level ${level+1} finished! You won ${stars} points.` : `Part ${cur} of ${PARTS} done. You won ${stars} points.`;
-  $("#again").textContent = levelDone ? (last ? "Home" : `Level ${level+2} →`) : "Next →";
-  $("#gohome").hidden = levelDone && last;
+  $("#donetext").textContent = `You finished ${theme}! You won ${stars} points.`;
+  $("#again").textContent = last ? "Home" : "Next →";
+  $("#gohome").hidden = last;
   show("done"); say("Bravo !");
 }
 
@@ -546,7 +564,9 @@ function qSentence(s){
   const opts = shuffle([answer, ...others]);
   $("#stage").innerHTML = `<div class="scene">${scene}</div>
     <p class="sentence">${before}<button class="blank" id="blank" aria-label="Empty space for the missing word"></button>${after}</p>
-    <p class="en">${en}</p><div id="after"></div>`;
+    <p class="en">${en}</p><button class="listen" id="hear">${SPK} Hear the sentence</button>`;
+  const full = before + answer + after;
+  $("#hear").addEventListener("click", ()=> say(full));
   const a = $("#answers"); a.className = "chips";
   a.innerHTML = opts.map(o=>`<button class="chip" data-w="${o}">${o}</button>`).join("");
   const blank = $("#blank"); let sel = null, done = false;
@@ -555,9 +575,7 @@ function qSentence(s){
     if(done) return;
     if(chip.dataset.w === answer){
       done = true; blank.textContent = answer; blank.classList.add("ok","pop"); blank.classList.remove("hot");
-      addStar(); const full = before + answer + after; say(full);
-      $("#after").innerHTML = `<button class="listen" id="relisten">${SPK} Hear it again</button>`;
-      $("#relisten").addEventListener("click", ()=> say(full));
+      addStar(); say(full);
       nextButton();
     } else {
       first = false; chip.classList.remove("sel","shake"); void chip.offsetWidth; chip.classList.add("shake"); sel = null;
