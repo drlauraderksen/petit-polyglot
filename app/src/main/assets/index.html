@@ -32,7 +32,7 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:3px}
 .app{max-width:560px;height:100%;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
 
 /* ---------- home ---------- */
-#pick,#home{display:flex;flex-direction:column;gap:16px;flex:1;min-height:0;overflow-y:auto}
+#who,#edit,#pick,#home{display:flex;flex-direction:column;gap:16px;flex:1;min-height:0;overflow-y:auto}
 .brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand h1{flex:1;min-width:0}
 h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;margin:0;text-wrap:balance}
@@ -72,6 +72,20 @@ h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;mar
 .game .d{display:block}
 .ico.num{font-family:var(--display);font-weight:800}
 .btn.go{background:#8FE3C0}
+.ptile{position:relative}
+.ptile .tile2{width:100%;height:100%}
+.pedit{position:absolute;top:6px;right:6px;width:38px;height:38px;border-radius:50%;background:var(--paper);border:2px solid var(--ink);font-size:1rem}
+.pts{font-size:.95rem}
+.newp{background:var(--paper);border-style:dashed}
+.bigav{font-size:4.5rem;line-height:1.1;text-align:center}
+.avs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.av{font-size:1.8rem;line-height:1;aspect-ratio:1;border:3px solid transparent;border-radius:16px;background:var(--paper)}
+.av.on{border-color:var(--ink);background:var(--sun)}
+.nameinput{font-family:var(--display);font-weight:800;font-size:1.6rem;padding:8px 14px;border:3px solid var(--ink);border-radius:16px;
+  background:var(--paper);color:var(--ink);width:100%;user-select:text;-webkit-user-select:text}
+.nameinput:focus{outline:4px solid var(--sun)}
+.chipme{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border:3px solid var(--ink);border-radius:999px;padding:4px 14px;
+  font-weight:800;font-size:1.05rem;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-bottom:8px}
 @media (min-width:480px){.tiles{grid-template-columns:1fr 1fr 1fr}}
 .tile2{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:112px;padding:12px 8px;
@@ -140,8 +154,29 @@ h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;mar
 <body>
 <div class="app">
 
-  <section id="pick">
+  <section id="who" hidden>
     <div class="brand"><h1>Petit Polyglot</h1></div>
+    <p class="label">Who is playing? · Qui joue ?</p>
+    <div class="tiles" id="players"></div>
+  </section>
+
+  <section id="edit" hidden>
+    <div class="brand">
+      <button class="back" id="editback" aria-label="Back">←</button>
+      <h1 id="edittitle"></h1>
+    </div>
+    <div class="bigav" id="bigav"></div>
+    <div class="avs" id="avs"></div>
+    <label class="label" for="pname">Name · Prénom</label>
+    <input id="pname" class="nameinput" type="text" maxlength="14" autocomplete="off" autocapitalize="words" spellcheck="false">
+    <div class="row">
+      <button class="btn go" id="psave">OK ✓</button>
+      <button class="btn alt" id="pdel" hidden></button>
+    </div>
+  </section>
+
+  <section id="pick" hidden>
+    <div class="brand"><h1>Petit Polyglot</h1><button class="chipme" id="mechip" aria-label="Change player"></button></div>
     <div class="games" id="courses"></div>
   </section>
 
@@ -832,9 +867,9 @@ function sent(li, si){
 
 let level = 0, theme = "", ti = 0, queue = [], qi = 0, stars = 0, first = true, timer = null;
 let total = 0, done = {};
-const key = k => cid==="fr" ? "pf-"+k : `pf-${k}-${cid}`;   /* each course keeps its own points and stars */
+const key = k => `pp-${me.id}-${k}-${cid}`;   /* each player keeps separate points and stars for each course */
 
-function show(id){ ["pick","home","game","done"].forEach(v => $("#"+v).hidden = v!==id); }
+function show(id){ ["who","edit","pick","home","game","done"].forEach(v => $("#"+v).hidden = v!==id); }
 function addStar(){
   const n = first ? 10 : 5; stars += n; total += n;
   $("#stars").textContent = stars; $("#total").textContent = total;
@@ -856,7 +891,86 @@ function chunks(arr){
   return out;
 }
 
-/* ---------- first page: choose the language to learn ---------- */
+/* ---------- players: a name and an avatar, each with their own progress ---------- */
+const AVATARS = ["🦊","🐼","🦁","🐸","🐵","🦄","🐯","🐨","🐙","🦖","🐧","🐶","🐱","🐰","🐻","🦉","🐬","🐝","🚀","⭐","🌈","⚽","🎸","🤖"];
+const esc = t => String(t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let profiles = [], me = null, editing = null, pickAv = AVATARS[0];
+try{ profiles = JSON.parse(localStorage.getItem("pp-profiles") || "[]"); }catch(e){}
+if(!Array.isArray(profiles)) profiles = [];
+function saveProfiles(){ try{ localStorage.setItem("pp-profiles", JSON.stringify(profiles)); }catch(e){} }
+function pointsOf(p){
+  let n = 0;
+  Object.keys(COURSES).forEach(c => { try{ n += +localStorage.getItem(`pp-${p.id}-points-${c}`) || 0; }catch(e){} });
+  return n;
+}
+function drawWho(){
+  $("#players").innerHTML = profiles.map((p,i)=>
+    `<div class="ptile"><button class="tile2 g${i%3+1}" data-p="${p.id}"><span class="tpic">${p.avatar}</span><b>${esc(p.name)}</b><span class="pts">★ ${pointsOf(p)}</span></button>
+     <button class="pedit" data-e="${p.id}" aria-label="Edit ${esc(p.name)}">✏️</button></div>`).join("")
+    + `<button class="tile2 newp" data-new="1"><span class="tpic">＋</span><b>New player · Nouveau</b></button>`;
+}
+function goWho(){ stopSpeech(); drawWho(); show("who"); }
+function goPick(){
+  $("#mechip").innerHTML = `<span>${me.avatar}</span> ${esc(me.name)}`;
+  show("pick");
+}
+function drawAvs(){
+  $("#bigav").textContent = pickAv;
+  $("#avs").innerHTML = AVATARS.map(a => `<button class="av${a===pickAv ? " on" : ""}" data-a="${a}">${a}</button>`).join("");
+}
+function openEdit(p){
+  editing = p;
+  const free = AVATARS.filter(a => !profiles.some(q => q.avatar===a));
+  pickAv = p ? p.avatar : (free[0] || AVATARS[0]);
+  $("#pname").value = p ? p.name : "";
+  $("#edittitle").textContent = p ? "Edit · Modifier" : "New player · Nouveau";
+  $("#editback").hidden = !profiles.length;
+  const del = $("#pdel"); del.hidden = !p; del.textContent = "Delete · Supprimer"; delete del.dataset.armed;
+  drawAvs(); show("edit");
+}
+/* progress earned before players existed goes to the first player created */
+function adoptOldProgress(id){
+  try{
+    if(localStorage.getItem("pp-adopted")) return;
+    Object.keys(COURSES).forEach(c => ["points","themes"].forEach(k => {
+      const old = localStorage.getItem(c==="fr" ? "pf-"+k : `pf-${k}-${c}`);
+      if(old !== null) localStorage.setItem(`pp-${id}-${k}-${c}`, old);
+    }));
+    localStorage.setItem("pp-adopted", "1");
+  }catch(e){}
+}
+$("#players").addEventListener("click", e=>{
+  const ed = e.target.closest(".pedit"), t = e.target.closest(".tile2");
+  if(ed) return openEdit(profiles.find(p => p.id===ed.dataset.e));
+  if(!t) return;
+  if(t.dataset.new) return openEdit(null);
+  me = profiles.find(p => p.id===t.dataset.p); if(me) goPick();
+});
+$("#avs").addEventListener("click", e=>{ const b = e.target.closest(".av"); if(b){ pickAv = b.dataset.a; drawAvs(); } });
+$("#psave").addEventListener("click", ()=>{
+  const name = $("#pname").value.trim().slice(0,14) || "★";
+  $("#pname").blur();
+  if(editing){ editing.name = name; editing.avatar = pickAv; me = editing; }
+  else {
+    me = {id:"p" + Date.now().toString(36), name, avatar:pickAv};
+    if(!profiles.length) adoptOldProgress(me.id);
+    profiles.push(me);
+  }
+  saveProfiles(); goPick();
+});
+$("#pdel").addEventListener("click", ()=>{
+  const del = $("#pdel");
+  if(!del.dataset.armed){ del.dataset.armed = "1"; del.textContent = "Really? · Vraiment ?"; return; }   /* second tap deletes */
+  const id = editing.id;
+  profiles = profiles.filter(p => p.id!==id); saveProfiles();
+  try{ Object.keys(COURSES).forEach(c => ["points","themes"].forEach(k => localStorage.removeItem(`pp-${id}-${k}-${c}`))); }catch(e){}
+  if(me && me.id===id) me = null;
+  profiles.length ? goWho() : openEdit(null);
+});
+$("#editback").addEventListener("click", goWho);
+$("#mechip").addEventListener("click", goWho);
+
+/* ---------- choose the language to learn ---------- */
 $("#courses").innerHTML = Object.keys(COURSES).map((id,i)=>{ const c = COURSES[id];
   return `<button class="game g${i%3+1}" data-c="${id}"><span class="ico">${c.flag}</span><span class="grow"><b>${c.title}</b><span class="d">${c.blurb}</span></span></button>`;
 }).join("");
@@ -890,9 +1004,11 @@ $("#back").addEventListener("click", home);
 $("#gohome").addEventListener("click", home);
 $("#again").addEventListener("click", ()=>{ if(ti < THEMES.length-1) startTheme(ti+1); else home(); });
 function home(){ clearTimeout(timer); stopSpeech(); drawHome(); show("home"); }
-/* the tablet's back button: exercise -> themes -> language choice -> leave the app */
+/* the tablet's back button: exercise -> themes -> language choice -> players -> leave the app */
 window.goBack = function(){
-  if(!$("#pick").hidden) return "exit";
+  if(!$("#who").hidden) return "exit";
+  if(!$("#edit").hidden){ if(!profiles.length) return "exit"; goWho(); return "stay"; }
+  if(!$("#pick").hidden){ goWho(); return "stay"; }
   if(!$("#home").hidden){ stopSpeech(); show("pick"); return "stay"; }
   home(); return "stay";
 };
@@ -1028,6 +1144,11 @@ function qSentence(S){
     chip.addEventListener("click", e=>{ if(e.detail===0) tap(); });
   });
 }
+
+/* ---------- start ---------- */
+if(!profiles.length) openEdit(null);
+else if(profiles.length===1){ me = profiles[0]; goPick(); }
+else goWho();
 </script>
 </body>
 </html>
