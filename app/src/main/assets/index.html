@@ -72,6 +72,13 @@ h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;mar
 .game .d{display:block}
 .ico.num{font-family:var(--display);font-weight:800}
 .btn.go{background:#8FE3C0}
+.words{grid-template-columns:1fr}
+.wbtn{font-family:var(--display);font-weight:800;font-size:1.6rem;line-height:1.15;min-height:62px;padding:8px 14px;background:var(--sun);
+  border:3px solid var(--ink);border-radius:20px;box-shadow:0 5px 0 var(--ink);overflow-wrap:anywhere}
+.wbtn.nat{background:var(--paper);font-family:var(--body)}
+.en.big{font-size:2rem}
+#word span:empty{display:none}
+.tick{font-family:var(--display);font-weight:800}
 .ptile{position:relative}
 .ptile .tile2{width:100%;height:100%}
 .pedit{position:absolute;top:6px;right:6px;width:38px;height:38px;border-radius:50%;background:var(--paper);border:2px solid var(--ink);font-size:1rem}
@@ -198,6 +205,7 @@ h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;mar
       <span><b id="hellow"></b><small id="hellos"></small></span>
     </button>
     <p class="note" id="voicenote" hidden></p>
+    <button class="game g1" id="cont" hidden><span class="ico" id="conti"></span><span class="grow"><b id="contt"></b><span class="d" id="contd"></span></span></button>
     <button class="game g2" id="practice" hidden><span class="ico">🔁</span><span class="grow"><b id="practicet"></b><span class="d" id="practiced"></span></span></button>
     <p class="label" id="lbl"></p>
     <div class="tiles" id="levels"></div>
@@ -744,17 +752,23 @@ const LANG = {
 const OWN = {fr:"Français", en:"English", nb:"Norsk"};
 const UI = {
   en:{ theme:"Pick a theme", which:"Which picture is it?", hear:"Hear the sentence", next:"Next →", home:"Home", back:"← Home",
-       tap:"Tap any yellow word to hear it.", practice:"Practise my words", pcount:n=>`${n} words learned so far`, pdone:n=>`Practice done! You won ${n} points.`, learn:"What do you want to learn?", lang:{fr:"French", en:"English", nb:"Norwegian"},
+       tap:"Tap any yellow word to hear it.", cont:"Continue", listenq:"Listen. Which one is it?", pickw:"Which word is it?",
+       part:(a,b)=>`Part ${a} of ${b}`, partdone:(a,b,n)=>`Part ${a} of ${b} done. You won ${n} points.`,
+       practice:"Practise my words", pcount:n=>`${n} words learned so far`, pdone:n=>`Practice done! You won ${n} points.`, learn:"What do you want to learn?", lang:{fr:"French", en:"English", nb:"Norwegian"},
        match:t=>`Tap a ${t} word, then its English friend.`,
        done:(t,n)=>`You finished ${t}! You won ${n} points.`,
        novoice:l=>`The ${l} voice is missing on this tablet. Open Settings, search for Text-to-speech, and install ${l}.` },
   fr:{ theme:"Choisis un thème", which:"C'est quelle image ?", hear:"Écouter la phrase", next:"Suivant →", home:"Accueil", back:"← Accueil",
-       tap:"Touche un mot jaune pour l'écouter.", practice:"Réviser mes mots", pcount:n=>`${n} mots appris`, pdone:n=>`Révision finie ! Tu as gagné ${n} points.`, learn:"Que veux-tu apprendre ?", lang:{fr:"français", en:"anglais", nb:"norvégien"},
+       tap:"Touche un mot jaune pour l'écouter.", cont:"Continuer", listenq:"Écoute. C'est lequel ?", pickw:"C'est quel mot ?",
+       part:(a,b)=>`Partie ${a} sur ${b}`, partdone:(a,b,n)=>`Partie ${a} sur ${b} finie. Tu as gagné ${n} points.`,
+       practice:"Réviser mes mots", pcount:n=>`${n} mots appris`, pdone:n=>`Révision finie ! Tu as gagné ${n} points.`, learn:"Que veux-tu apprendre ?", lang:{fr:"français", en:"anglais", nb:"norvégien"},
        match:t=>`Touche un mot en ${t}, puis son ami en français.`,
        done:(t,n)=>`Tu as fini « ${t} » ! Tu as gagné ${n} points.`,
        novoice:l=>`La voix pour la langue « ${l} » manque sur cette tablette. Ouvre les Paramètres, cherche « Synthèse vocale » et installe la langue.` },
   nb:{ theme:"Velg et tema", which:"Hvilket bilde er det?", hear:"Hør setningen", next:"Neste →", home:"Hjem", back:"← Hjem",
-       tap:"Trykk på et gult ord for å høre det.", practice:"Øv på ordene mine", pcount:n=>`${n} ord lært så langt`, pdone:n=>`Ferdig med øvingen! Du fikk ${n} poeng.`, learn:"Hva vil du lære?", lang:{fr:"fransk", en:"engelsk", nb:"norsk"},
+       tap:"Trykk på et gult ord for å høre det.", cont:"Fortsett", listenq:"Hør. Hvilken er det?", pickw:"Hvilket ord er det?",
+       part:(a,b)=>`Del ${a} av ${b}`, partdone:(a,b,n)=>`Del ${a} av ${b} er ferdig. Du fikk ${n} poeng.`,
+       practice:"Øv på ordene mine", pcount:n=>`${n} ord lært så langt`, pdone:n=>`Ferdig med øvingen! Du fikk ${n} poeng.`, learn:"Hva vil du lære?", lang:{fr:"fransk", en:"engelsk", nb:"norsk"},
        match:t=>`Trykk på et ord på ${t}, og så vennen på norsk.`,
        done:(t,n)=>`Du er ferdig med «${t}»! Du fikk ${n} poeng.`,
        novoice:l=>`Stemmen for ${l} mangler på dette nettbrettet. Åpne Innstillinger, søk etter «Tekst-til-tale» og installer språket.` }
@@ -903,6 +917,8 @@ let level = 0, theme = "", ti = 0, queue = [], qi = 0, stars = 0, first = true, 
 let total = 0, done = {};
 /* every word the player has met: s = how well it is known (0 to 5), d = the day it was last seen */
 let W = {}, practice = false, pool = [];
+/* P = how many parts of each unfinished theme are done; a theme is split into short parts */
+let P = {}, part = 0, nParts = 1, themeDone = false;
 function mark(item, ok){
   const w = W[item.id] || {s:0, d:0};
   w.s = ok ? Math.min(5, w.s + 1) : 0; w.d = Math.floor(Date.now() / 864e5);
@@ -1013,7 +1029,7 @@ $("#pdel").addEventListener("click", ()=>{
   if(!del.dataset.armed){ del.dataset.armed = "1"; del.textContent = "Really? · Vraiment ? · Sikker?"; return; }   /* second tap deletes */
   const id = editing.id;
   profiles = profiles.filter(p => p.id!==id); saveProfiles();
-  try{ ALL_COURSES.forEach(c => ["points","themes","words"].forEach(k => localStorage.removeItem(`pp-${id}-${k}-${store(c)}`))); }catch(e){}
+  try{ ALL_COURSES.forEach(c => ["points","themes","words","parts"].forEach(k => localStorage.removeItem(`pp-${id}-${k}-${store(c)}`))); }catch(e){}
   if(me && me.id===id) me = null;
   profiles.length ? goWho() : openEdit(null);
 });
@@ -1028,9 +1044,10 @@ $("#mylang").addEventListener("click", ()=> show("native"));
 $("#courses").addEventListener("click", e=>{ const b=e.target.closest(".game"); if(b) selectCourse(b.dataset.c); });
 function selectCourse(t){
   C = course(t, me.native); cid = t + "_" + me.native; U = UI[C.n];
-  total = 0; done = {}; W = {};
+  total = 0; done = {}; W = {}; P = {};
   try{
     W = JSON.parse(localStorage.getItem(key("words")) || "{}") || {};
+    P = JSON.parse(localStorage.getItem(key("parts")) || "{}") || {};
     total = +localStorage.getItem(key("points")) || 0;
     done = JSON.parse(localStorage.getItem(key("themes")) || "{}") || {};
   }catch(e){}
@@ -1043,20 +1060,44 @@ function selectCourse(t){
 }
 
 /* ---------- theme page: one tile per theme ---------- */
+const themeSents = T => T.sidx.map(si => sent(T.level, si)).filter(Boolean);
+const partsOf = T => Math.ceil(LEVELS[T.level].themes[T.name].length / 4) + (themeSents(T).length ? 1 : 0);
 function drawHome(){
   $("#total").textContent = total;
   const known = Object.keys(W).length;
   $("#practice").hidden = known < 4; $("#practicet").textContent = U.practice; $("#practiced").textContent = U.pcount(known);
-  $("#levels").innerHTML = THEMES.map((T,i)=>
-    `<button class="tile2 g${i%3+1}" data-i="${i}"><span class="tpic">${pic({p:T.first})}</span><b>${themeName(i)}</b>${done[T.name] ? '<span class="tick">★</span>' : ""}</button>`
-  ).join("");
+  /* Continue: the first theme not finished yet, at the part he has reached */
+  const nx = THEMES.findIndex(T => !done[T.name]);
+  $("#cont").hidden = nx < 0;
+  if(nx >= 0){
+    const T = THEMES[nx], n = partsOf(T);
+    $("#cont").dataset.i = nx; $("#conti").innerHTML = pic({p:T.first});
+    $("#contt").textContent = U.cont;
+    $("#contd").textContent = themeName(nx) + " · " + U.part(Math.min(P[T.name] || 0, n-1) + 1, n);
+  }
+  $("#levels").innerHTML = THEMES.map((T,i)=>{
+    const mark = done[T.name] ? '<span class="tick">★</span>' : P[T.name] ? `<span class="tick">${P[T.name]}/${partsOf(T)}</span>` : "";
+    return `<button class="tile2 g${i%3+1}" data-i="${i}"><span class="tpic">${pic({p:T.first})}</span><b>${themeName(i)}</b>${mark}</button>`;
+  }).join("");
 }
+$("#cont").addEventListener("click", ()=> startTheme(+$("#cont").dataset.i));
 $("#levels").addEventListener("click", e=>{ const b=e.target.closest(".tile2"); if(b) startTheme(+b.dataset.i); });
 $("#hello").addEventListener("click", ()=> say(C.hello));
 $("#change").addEventListener("click", goPick);
 $("#back").addEventListener("click", home);
 $("#gohome").addEventListener("click", home);
-$("#again").addEventListener("click", ()=>{ if(!practice && ti < THEMES.length-1) startTheme(ti+1); else home(); });
+$("#again").addEventListener("click", ()=>{
+  if(practice) home();
+  else if(!themeDone) startTheme(ti);                 /* next part of the same theme */
+  else { const nx = nextTheme(); nx >= 0 ? startTheme(nx) : home(); }
+});
+/* after finishing a theme: the next one not finished yet, looking onward first and then from the start */
+function nextTheme(){
+  const open = i => !done[THEMES[i].name];
+  for(let i = ti+1; i < THEMES.length; i++) if(open(i)) return i;
+  for(let i = 0; i < ti; i++) if(open(i)) return i;
+  return -1;
+}
 $("#practice").addEventListener("click", startPractice);
 function home(){ clearTimeout(timer); stopSpeech(); drawHome(); show("home"); }
 /* the tablet's back button: exercise -> themes -> language choice -> players -> leave the app */
@@ -1068,17 +1109,23 @@ window.goBack = function(){
   home(); return "stay";
 };
 
-/* a theme runs: hear about four words, match those words, repeat, then its sentences */
+/* The steps for up to four words. A full part: see and hear each word and find its picture,
+   match the words, then for each word either listen with no text or pick the word for a picture. */
+function partSteps(set, full){
+  const st = [];
+  if(full) set.forEach(item => { if(item.p) st.push({k:"listen", item}); });
+  st.push({k:"match", set});
+  shuffle(set).forEach(item => st.push({k: Math.random() < 0.5 ? "hear" : "pick", item}));
+  if(full && !set.some(x => x.p)) st.push({k:"match", set});
+  return st;
+}
+/* a theme is played one short part at a time: four words per part, then one part of sentences */
 function startTheme(i){
-  ti = i; const T = THEMES[i]; level = T.level; theme = T.name; queue = []; practice = false;
-  const its = shuffle(items(theme)); pool = its;
-  if(its.some(x => x.p)) chunks(its).forEach(set=>{
-    set.forEach(item => queue.push({k:"listen", item}));
-    queue.push({k:"match", set});
-  });
-  else for(let round=0; round<2; round++)      /* words without pictures: matching only, each word twice */
-    chunks(shuffle(its)).forEach(set => queue.push({k:"match", set}));
-  shuffle(T.sidx.map(si => sent(T.level, si)).filter(Boolean)).forEach(s => queue.push({k:"sentence", s}));
+  ti = i; const T = THEMES[i]; level = T.level; theme = T.name; practice = false;
+  const all = items(theme), ch = chunks(all), sents = themeSents(T);
+  pool = all; nParts = ch.length + (sents.length ? 1 : 0);
+  part = Math.min(P[theme] || 0, nParts - 1);
+  queue = part < ch.length ? partSteps(ch[part], true) : shuffle(sents).map(s => ({k:"sentence", s}));
   qi = 0; stars = 0; $("#stars").textContent = 0;
   show("game"); next();
 }
@@ -1093,10 +1140,8 @@ function startPractice(){
   practice = true; theme = ""; queue = [];
   pool = its.filter(x => x.p);
   if(pool.length < 4){ level = 0; pool = pool.concat(items("Animals")); }
-  chunks(its).forEach(set=>{
-    set.forEach(item => { if(item.p) queue.push({k:"listen", item}); });
-    queue.push({k:"match", set});
-  });
+  pool = pool.concat(its.filter(x => !x.p));
+  chunks(its).forEach(set => queue.push(...partSteps(set, false)));
   qi = 0; stars = 0; $("#stars").textContent = 0;
   show("game"); next();
 }
@@ -1108,6 +1153,8 @@ function next(){
   $("#stage").onclick = null; const a = $("#answers"); a.onclick = null; delete a.dataset.lock;
   const step = queue[qi];
   if(step.k==="listen") qListen(step.item);
+  else if(step.k==="hear") qHear(step.item);
+  else if(step.k==="pick") qPick(step.item);
   else if(step.k==="match") qMatch(step.set);
   else qSentence(step.s);
 }
@@ -1117,21 +1164,62 @@ function finish(){
     $("#again").textContent = U.home; $("#gohome").hidden = true;
     show("done"); say(C.bravo); return;
   }
-  done[theme] = (done[theme] || 0) + 1;
-  try{ localStorage.setItem(key("themes"), JSON.stringify(done)); }catch(e){}
-  const last = ti >= THEMES.length-1;
+  part++; themeDone = part >= nParts;
+  if(themeDone){ done[theme] = (done[theme] || 0) + 1; delete P[theme]; } else P[theme] = part;
+  try{ localStorage.setItem(key("themes"), JSON.stringify(done)); localStorage.setItem(key("parts"), JSON.stringify(P)); }catch(e){}
+  const last = themeDone && nextTheme() < 0;
   $("#bigstars").textContent = "★ " + stars;
-  $("#donetext").textContent = U.done(themeName(ti), stars);
+  $("#donetext").textContent = themeDone ? U.done(themeName(ti), stars) : U.partdone(part, nParts, stars);
   $("#again").textContent = last ? U.home : U.next;
   $("#gohome").hidden = last;
   show("done"); say(C.bravo);
 }
 
+/* wrong choices from the current pool, never two that look or read the same */
+function others(target, n, keyf, filt){
+  const seen = new Set([keyf(target)]);
+  return shuffle(pool).filter(o => o.id!==target.id && (!filt || filt(o)) && !seen.has(keyf(o)) && seen.add(keyf(o))).slice(0, n);
+}
+/* shared by the two extra questions: a row of choices, one of them right */
+function choices(target, opts, html, onRight){
+  const a = $("#answers");
+  a.innerHTML = opts.map(o => html(o)).join("");
+  a.onclick = e => {
+    const c = e.target.closest("[data-id]"); if(!c || a.dataset.lock) return;
+    const o = opts.find(x => x.id===c.dataset.id);
+    if(o.id === target.id){
+      a.dataset.lock = "1"; c.classList.add("ok","pop"); mark(target, first); addStar(); onRight();
+      later(go, 1500);
+    } else { first = false; if(C.t && c.classList.contains("tgt")) say(tw(o)); c.classList.add("shake"); setTimeout(()=>c.classList.add("gone"), 400); }
+  };
+}
+
+/* ---------- listen with no text: which one was it? ---------- */
+function qHear(target){
+  $("#stage").innerHTML = `<p class="hint">${U.listenq}</p><button class="fr" id="word">${SPK}<span></span></button>`;
+  $("#word").addEventListener("click", ()=> say(tw(target)));
+  const a = $("#answers"), right = () => { $("#word span").textContent = tw(target); say(C.yes + tw(target)); };
+  if(target.p){
+    a.className = "answers pics";
+    choices(target, shuffle([target, ...others(target, 3, o => o.p, o => o.p)]), o => `<button class="card" data-id="${o.id}">${pic(o)}</button>`, right);
+  } else {
+    a.className = "answers words";
+    choices(target, shuffle([target, ...others(target, 2, nw)]), o => `<button class="wbtn nat" data-id="${o.id}">${nw(o)}</button>`, right);
+  }
+  const mine = qi;
+  setTimeout(()=>{ if(qi===mine && !$("#game").hidden && !a.dataset.lock) say(tw(target)); }, 350);
+}
+
+/* ---------- see the picture (or the word he knows): which word is it? ---------- */
+function qPick(target){
+  $("#stage").innerHTML = `<p class="hint">${U.pickw}</p>` + (target.p ? `<div class="scene">${pic(target)}</div>` : `<p class="en big">${nw(target)}</p>`);
+  const a = $("#answers"); a.className = "answers words";
+  choices(target, shuffle([target, ...others(target, 2, tw)]), o => `<button class="wbtn tgt" data-id="${o.id}">${tw(o)}</button>`, () => say(tw(target)));
+}
+
 /* ---------- hear the word, find the picture ---------- */
 function qListen(target){
-  const seenPic = new Set([target.p]);
-  const wrong = shuffle(pool).filter(o => o.p && !seenPic.has(o.p) && seenPic.add(o.p)).slice(0,3);
-  const opts = shuffle([target, ...wrong]);
+  const opts = shuffle([target, ...others(target, 3, o => o.p, o => o.p)]);
   $("#stage").innerHTML = `<p class="hint">${U.which}</p><button class="fr" id="word">${SPK}<span>${tw(target)}</span></button>`;
   $("#word").addEventListener("click", ()=> say(tw(target)));
   const a = $("#answers"); a.className = "answers pics";
