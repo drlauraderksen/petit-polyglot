@@ -32,7 +32,7 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:3px}
 .app{max-width:560px;height:100%;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
 
 /* ---------- home ---------- */
-#who,#edit,#pick,#home{display:flex;flex-direction:column;gap:16px;flex:1;min-height:0;overflow-y:auto}
+#who,#edit,#native,#pick,#home{display:flex;flex-direction:column;gap:16px;flex:1;min-height:0;overflow-y:auto}
 .brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand h1{flex:1;min-width:0}
 h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;margin:0;text-wrap:balance}
@@ -156,7 +156,7 @@ h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;mar
 
   <section id="who" hidden>
     <div class="brand"><h1>Petit Polyglot</h1></div>
-    <p class="label">Who is playing? · Qui joue ?</p>
+    <p class="label">Who is playing? · Qui joue ? · Hvem spiller?</p>
     <div class="tiles" id="players"></div>
   </section>
 
@@ -167,7 +167,7 @@ h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;mar
     </div>
     <div class="bigav" id="bigav"></div>
     <div class="avs" id="avs"></div>
-    <label class="label" for="pname">Name · Prénom</label>
+    <label class="label" for="pname">Name · Prénom · Navn</label>
     <input id="pname" class="nameinput" type="text" maxlength="14" autocomplete="off" autocapitalize="words" spellcheck="false">
     <div class="row">
       <button class="btn go" id="psave">OK ✓</button>
@@ -175,9 +175,16 @@ h1{font-family:var(--display);font-weight:800;font-size:2.3rem;line-height:1;mar
     </div>
   </section>
 
+  <section id="native" hidden>
+    <div class="brand"><h1>Petit Polyglot</h1></div>
+    <div class="games" id="natives"></div>
+  </section>
+
   <section id="pick" hidden>
     <div class="brand"><h1>Petit Polyglot</h1><button class="chipme" id="mechip" aria-label="Change player"></button></div>
+    <p class="label" id="learnlbl"></p>
     <div class="games" id="courses"></div>
+    <button class="back" id="mylang" style="align-self:flex-start"></button>
   </section>
 
   <section id="home" hidden>
@@ -719,44 +726,68 @@ const NB_S = [
 
 /* theme names for French-speaking learners */
 const THEME_FR = ["Les animaux","La nourriture","Les couleurs","Mon monde","Les nombres 1–10","Animaux sauvages","Mon corps","Les vêtements","Les gens","Encore à manger","Dehors","Ça roule, ça vole","À la maison","Les émotions","Les nombres 11–20","On joue","Ferme et jardin","Au bord de l'eau","Fruits et légumes","Le goûter","Les métiers","En ville","Objets utiles","Terre et espace","Grands nombres","Contes et légendes","La fête","Animaux du zoo","Les actions","Mots gentils","À l'école","Les sports","Dans la maison","Les outils","Sur la route","On s'habille","Encore des animaux","Au jardin","Chez le docteur","À table","Encore des gens","En vacances","Jeux et spectacles","Formes et signes","Je, tu, il…","Petits mots","Les questions","Grand ou petit","Les jours","Le temps qui passe","Verbes utiles","La famille"];
+/* theme names for Norwegian-speaking learners */
+const THEME_NB = ["Dyr","Mat","Farger","Min verden","Tall 1–10","Ville dyr","Kroppen min","Klær","Mennesker","Mer mat","Ute","Ting som kjører","Hjemme","Følelser","Tall 11–20","Leketid","Gård og hage","Ved vannet","Frukt og grønt","Noe godt","Yrker","I byen","Nyttige ting","Jorda og verdensrommet","Store tall","Eventyr","Fest","Dyr i dyrehagen","Ting vi gjør","Snille ord","Skole","Sport","I huset","Verktøy","På veien","Vi kler oss","Flere dyr","I hagen","Hos legen","Middag","Flere mennesker","På ferie","Lek og moro","Former og tegn","Du og jeg","Småord","Spørreord","Stor og liten","Dager","Tid","Nyttige verb","Familie"];
 /* tile pictures for themes whose words have none */
 const ICON = {"You and me":"👥","Little words":"🔤","Question words":"❓","Big and small":"⚖️","Days":"📆","Time words":"⏳","Useful verbs":"🤸","Family":"👨‍👩‍👧"};
 
 const $ = s => document.querySelector(s);
 const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
 
-/* ---------- courses: t = language to learn, n = language the child already speaks ---------- */
-const COURSES = {
-  fr:{flag:"🇫🇷", t:"fr", n:"en", tts:"fr-FR", ntts:"en-GB", hello:"Bonjour !", yes:"Oui ! ", bravo:"Bravo !",
-      title:"French", blurb:"I speak English. I want to learn French."},
-  en:{flag:"🇬🇧", t:"en", n:"fr", tts:"en-GB", ntts:"fr-FR", hello:"Hello!", yes:"Yes! ", bravo:"Well done!",
-      title:"Anglais", blurb:"Je parle français. Je veux apprendre l'anglais."},
-  nb:{flag:"🇳🇴", t:"nb", n:"en", tts:"nb-NO", ntts:"en-GB", hello:"Hei!", yes:"Ja! ", bravo:"Bra jobba!",
-      title:"Norwegian", blurb:"I speak English. I want to learn Norwegian."}
+/* ---------- languages: any of the three can be the child's own language or the one to learn ---------- */
+const LANG = {
+  en:{flag:"🇬🇧", tts:"en-GB", own:"English",  hello:"Hello!",    yes:"Yes! ", bravo:"Well done!", speak:"I speak English"},
+  fr:{flag:"🇫🇷", tts:"fr-FR", own:"Français", hello:"Bonjour !", yes:"Oui ! ", bravo:"Bravo !",    speak:"Je parle français"},
+  nb:{flag:"🇳🇴", tts:"nb-NO", own:"Norsk",    hello:"Hei!",      yes:"Ja! ",  bravo:"Bra jobba!", speak:"Jeg snakker norsk"}
 };
 const OWN = {fr:"Français", en:"English", nb:"Norsk"};
 const UI = {
   en:{ theme:"Pick a theme", which:"Which picture is it?", hear:"Hear the sentence", next:"Next →", home:"Home", back:"← Home",
-       tap:"Tap any yellow word to hear it.", lang:{fr:"French", en:"English", nb:"Norwegian"},
+       tap:"Tap any yellow word to hear it.", learn:"What do you want to learn?", lang:{fr:"French", en:"English", nb:"Norwegian"},
        match:t=>`Tap a ${t} word, then its English friend.`,
        done:(t,n)=>`You finished ${t}! You won ${n} points.`,
        novoice:l=>`The ${l} voice is missing on this tablet. Open Settings, search for Text-to-speech, and install ${l}.` },
   fr:{ theme:"Choisis un thème", which:"C'est quelle image ?", hear:"Écouter la phrase", next:"Suivant →", home:"Accueil", back:"← Accueil",
-       tap:"Touche un mot jaune pour l'écouter.", lang:{fr:"français", en:"anglais", nb:"norvégien"},
+       tap:"Touche un mot jaune pour l'écouter.", learn:"Que veux-tu apprendre ?", lang:{fr:"français", en:"anglais", nb:"norvégien"},
        match:t=>`Touche un mot en ${t}, puis son ami en français.`,
        done:(t,n)=>`Tu as fini « ${t} » ! Tu as gagné ${n} points.`,
-       novoice:l=>`La voix pour l'${l} manque sur cette tablette. Ouvre les Paramètres, cherche « Synthèse vocale » et installe la langue.` }
+       novoice:l=>`La voix pour la langue « ${l} » manque sur cette tablette. Ouvre les Paramètres, cherche « Synthèse vocale » et installe la langue.` },
+  nb:{ theme:"Velg et tema", which:"Hvilket bilde er det?", hear:"Hør setningen", next:"Neste →", home:"Hjem", back:"← Hjem",
+       tap:"Trykk på et gult ord for å høre det.", learn:"Hva vil du lære?", lang:{fr:"fransk", en:"engelsk", nb:"norsk"},
+       match:t=>`Trykk på et ord på ${t}, og så vennen på norsk.`,
+       done:(t,n)=>`Du er ferdig med «${t}»! Du fikk ${n} poeng.`,
+       novoice:l=>`Stemmen for ${l} mangler på dette nettbrettet. Åpne Innstillinger, søk etter «Tekst-til-tale» og installer språket.` }
 };
-let cid = "fr", C = COURSES.fr, U = UI.en;
+const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+const course = (t, n) => ({t, n, tts:LANG[t].tts, flag:LANG[t].flag, hello:LANG[t].hello, yes:LANG[t].yes, bravo:LANG[t].bravo});
+let cid = "fr_en", C = course("fr","en"), U = UI.en;
 const tw = it => it[C.t], nw = it => it[C.n];
+/* progress saved before the app became trilingual used the short names on the right */
+const LEGACY = {fr_en:"fr", en_fr:"en", nb_en:"nb"};
+const store = id => LEGACY[id] || id;
+const ALL_COURSES = ["fr_en","nb_en","en_fr","nb_fr","en_nb","fr_nb"];
 
+/* French words starting with l' that are feminine, so "l'étoile" can become "une étoile" */
+const FR_FEM = new Set(["eau","étoile","oreille","écharpe","île","horloge","abeille","araignée","orange","école","église","usine","ampoule","épée","épingle","ambulance","ancre","année"]);
+function frIndef(fr){
+  if(fr.startsWith("le ")) return "un " + fr.slice(3);
+  if(fr.startsWith("la ")) return "une " + fr.slice(3);
+  if(fr.startsWith("les ")) return "des " + fr.slice(4);
+  if(fr.startsWith("l'")) return (FR_FEM.has(fr.slice(2)) ? "une " : "un ") + fr.slice(2);
+  return fr;
+}
+
+/* The two languages on screen always carry the same kind of article:
+   "le chat / the cat", "en katt / a cat", "katten / le chat", "en katt / un chat". */
 const items = t => {
-  const L = LEVELS[level], k = Object.keys(L.themes).indexOf(t);
+  const L = LEVELS[level], k = Object.keys(L.themes).indexOf(t), pair = C.t + C.n;
+  const hasNb = pair.includes("nb"), hasFr = pair.includes("fr");
   return L.themes[t].map((s,i)=>{ const [fr,en,p] = s.split("|"), nb = NB[level][k][i];
-    /* in the Norwegian course a word sometimes appears as "treet / the tree" instead of "et tre / a tree" */
-    const def = C.t==="nb" && Math.random() < 0.4 ? (NBD[level][k] || [])[i] : "";
-    if(def) return {id:i, fr, en:NO_THE.has(en) ? en : "the " + en, p, nb:def};
-    return {id:i, fr, en:enWith(en, C.t==="nb" ? nb : fr), p, nb}; });
+    if(!hasNb) return {id:i, fr, en:enWith(en, fr), p, nb};
+    const art = /^(en|et) /.test(nb), def = art ? (NBD[level][k] || [])[i] : "";
+    if(def && Math.random() < (hasFr ? 0.5 : 0.4))        /* Norwegian "the" form: katten */
+      return {id:i, fr, en:NO_THE.has(en) ? en : "the " + en, p, nb:def};
+    return {id:i, fr: art ? frIndef(fr) : fr, en:enWith(en, nb), p, nb}; });
 };
 /* English gets the same kind of article as the word it is paired with: "la lune" -> "the moon", "en måne" -> "a moon" */
 const NO_A = new Set(["scissors","trousers","glasses","gloves","grapes","fries","skates","dice","broccoli","Earth","lightning","shorts"]);
@@ -851,25 +882,26 @@ LEVELS.forEach((L,li)=> Object.keys(L.themes).forEach((name,k)=> THEMES.push({
   name, level:li, first:ICON[name] || L.themes[name][0].split("|")[2],
   sidx:L.sentences.map((_,si)=>si).filter(si=> SMAP[li][si]===k)
 })));
-const themeName = i => C.n==="fr" ? THEME_FR[i] : THEMES[i].name;
+const themeName = i => C.n==="fr" ? THEME_FR[i] : C.n==="nb" ? THEME_NB[i] : THEMES[i].name;
 
 /* one sentence in the language being learned, or null if that language has none yet */
 function sent(li, si){
-  const s = LEVELS[li].sentences[si]; let parts;
-  if(C.t==="fr") parts = [s[1], s[2], s[3]];
-  else {
-    const src = (C.t==="en" ? EN_S : NB_S)[li], m = src && src[si] && src[si].match(/^(.*)\[(.*)\](.*)$/);
-    if(!m) return null;
-    parts = [m[1], m[2], m[3]];
-  }
-  return {scene:s[0], before:parts[0], answer:parts[1], after:parts[2], tr: C.n==="en" ? s[4] : s[1]+s[2]+s[3], group:s[5], li};
+  const s = LEVELS[li].sentences[si];
+  const split = lang => {
+    if(lang==="fr") return [s[1], s[2], s[3]];
+    const src = (lang==="en" ? EN_S : NB_S)[li], m = src && src[si] && src[si].match(/^(.*)\[(.*)\](.*)$/);
+    return m ? [m[1], m[2], m[3]] : null;
+  };
+  const parts = split(C.t), tr = split(C.n);
+  if(!parts || !tr) return null;
+  return {scene:s[0], before:parts[0], answer:parts[1], after:parts[2], tr:tr.join(""), group:s[5], li};
 }
 
 let level = 0, theme = "", ti = 0, queue = [], qi = 0, stars = 0, first = true, timer = null;
 let total = 0, done = {};
-const key = k => `pp-${me.id}-${k}-${cid}`;   /* each player keeps separate points and stars for each course */
+const key = k => `pp-${me.id}-${k}-${store(cid)}`;   /* each player keeps separate points and stars for each course */
 
-function show(id){ ["who","edit","pick","home","game","done"].forEach(v => $("#"+v).hidden = v!==id); }
+function show(id){ ["who","edit","native","pick","home","game","done"].forEach(v => $("#"+v).hidden = v!==id); }
 function addStar(){
   const n = first ? 10 : 5; stars += n; total += n;
   $("#stars").textContent = stars; $("#total").textContent = total;
@@ -900,18 +932,26 @@ if(!Array.isArray(profiles)) profiles = [];
 function saveProfiles(){ try{ localStorage.setItem("pp-profiles", JSON.stringify(profiles)); }catch(e){} }
 function pointsOf(p){
   let n = 0;
-  Object.keys(COURSES).forEach(c => { try{ n += +localStorage.getItem(`pp-${p.id}-points-${c}`) || 0; }catch(e){} });
+  ALL_COURSES.forEach(c => { try{ n += +localStorage.getItem(`pp-${p.id}-points-${store(c)}`) || 0; }catch(e){} });
   return n;
 }
 function drawWho(){
   $("#players").innerHTML = profiles.map((p,i)=>
     `<div class="ptile"><button class="tile2 g${i%3+1}" data-p="${p.id}"><span class="tpic">${p.avatar}</span><b>${esc(p.name)}</b><span class="pts">★ ${pointsOf(p)}</span></button>
      <button class="pedit" data-e="${p.id}" aria-label="Edit ${esc(p.name)}">✏️</button></div>`).join("")
-    + `<button class="tile2 newp" data-new="1"><span class="tpic">＋</span><b>New player · Nouveau</b></button>`;
+    + `<button class="tile2 newp" data-new="1"><span class="tpic">＋</span><b>New · Nouveau · Ny</b></button>`;
 }
 function goWho(){ stopSpeech(); drawWho(); show("who"); }
+/* after choosing a player: ask for their own language once, then what they want to learn */
 function goPick(){
+  stopSpeech();
+  if(!LANG[me.native]){ show("native"); return; }
+  const n = me.native; U = UI[n]; document.documentElement.lang = n;
   $("#mechip").innerHTML = `<span>${me.avatar}</span> ${esc(me.name)}`;
+  $("#learnlbl").textContent = U.learn;
+  $("#courses").innerHTML = Object.keys(LANG).filter(t => t!==n).map((t,i)=>
+    `<button class="game g${i%3+1}" data-c="${t}"><span class="ico">${LANG[t].flag}</span><span class="grow"><b>${cap(U.lang[t])}</b><span class="d">${OWN[t]}</span></span></button>`).join("");
+  $("#mylang").textContent = `${LANG[n].flag} ${LANG[n].speak} ✎`;
   show("pick");
 }
 function drawAvs(){
@@ -923,16 +963,16 @@ function openEdit(p){
   const free = AVATARS.filter(a => !profiles.some(q => q.avatar===a));
   pickAv = p ? p.avatar : (free[0] || AVATARS[0]);
   $("#pname").value = p ? p.name : "";
-  $("#edittitle").textContent = p ? "Edit · Modifier" : "New player · Nouveau";
+  $("#edittitle").textContent = p ? "Edit · Modifier · Endre" : "New · Nouveau · Ny";
   $("#editback").hidden = !profiles.length;
-  const del = $("#pdel"); del.hidden = !p; del.textContent = "Delete · Supprimer"; delete del.dataset.armed;
+  const del = $("#pdel"); del.hidden = !p; del.textContent = "Delete · Supprimer · Slett"; delete del.dataset.armed;
   drawAvs(); show("edit");
 }
 /* progress earned before players existed goes to the first player created */
 function adoptOldProgress(id){
   try{
     if(localStorage.getItem("pp-adopted")) return;
-    Object.keys(COURSES).forEach(c => ["points","themes"].forEach(k => {
+    ["fr","en","nb"].forEach(c => ["points","themes"].forEach(k => {
       const old = localStorage.getItem(c==="fr" ? "pf-"+k : `pf-${k}-${c}`);
       if(old !== null) localStorage.setItem(`pp-${id}-${k}-${c}`, old);
     }));
@@ -960,10 +1000,10 @@ $("#psave").addEventListener("click", ()=>{
 });
 $("#pdel").addEventListener("click", ()=>{
   const del = $("#pdel");
-  if(!del.dataset.armed){ del.dataset.armed = "1"; del.textContent = "Really? · Vraiment ?"; return; }   /* second tap deletes */
+  if(!del.dataset.armed){ del.dataset.armed = "1"; del.textContent = "Really? · Vraiment ? · Sikker?"; return; }   /* second tap deletes */
   const id = editing.id;
   profiles = profiles.filter(p => p.id!==id); saveProfiles();
-  try{ Object.keys(COURSES).forEach(c => ["points","themes"].forEach(k => localStorage.removeItem(`pp-${id}-${k}-${c}`))); }catch(e){}
+  try{ ALL_COURSES.forEach(c => ["points","themes"].forEach(k => localStorage.removeItem(`pp-${id}-${k}-${store(c)}`))); }catch(e){}
   if(me && me.id===id) me = null;
   profiles.length ? goWho() : openEdit(null);
 });
@@ -971,12 +1011,13 @@ $("#editback").addEventListener("click", goWho);
 $("#mechip").addEventListener("click", goWho);
 
 /* ---------- choose the language to learn ---------- */
-$("#courses").innerHTML = Object.keys(COURSES).map((id,i)=>{ const c = COURSES[id];
-  return `<button class="game g${i%3+1}" data-c="${id}"><span class="ico">${c.flag}</span><span class="grow"><b>${c.title}</b><span class="d">${c.blurb}</span></span></button>`;
-}).join("");
+$("#natives").innerHTML = Object.keys(LANG).map((n,i)=>
+  `<button class="game g${i%3+1}" data-n="${n}"><span class="ico">${LANG[n].flag}</span><span class="grow"><b>${OWN[n]}</b><span class="d">${LANG[n].speak}</span></span></button>`).join("");
+$("#natives").addEventListener("click", e=>{ const b=e.target.closest(".game"); if(!b) return; me.native = b.dataset.n; saveProfiles(); goPick(); });
+$("#mylang").addEventListener("click", ()=> show("native"));
 $("#courses").addEventListener("click", e=>{ const b=e.target.closest(".game"); if(b) selectCourse(b.dataset.c); });
-function selectCourse(id){
-  cid = id; C = COURSES[id]; U = UI[C.n];
+function selectCourse(t){
+  C = course(t, me.native); cid = t + "_" + me.native; U = UI[C.n];
   total = 0; done = {};
   try{
     total = +localStorage.getItem(key("points")) || 0;
@@ -999,7 +1040,7 @@ function drawHome(){
 }
 $("#levels").addEventListener("click", e=>{ const b=e.target.closest(".tile2"); if(b) startTheme(+b.dataset.i); });
 $("#hello").addEventListener("click", ()=> say(C.hello));
-$("#change").addEventListener("click", ()=>{ stopSpeech(); show("pick"); });
+$("#change").addEventListener("click", goPick);
 $("#back").addEventListener("click", home);
 $("#gohome").addEventListener("click", home);
 $("#again").addEventListener("click", ()=>{ if(ti < THEMES.length-1) startTheme(ti+1); else home(); });
@@ -1008,8 +1049,8 @@ function home(){ clearTimeout(timer); stopSpeech(); drawHome(); show("home"); }
 window.goBack = function(){
   if(!$("#who").hidden) return "exit";
   if(!$("#edit").hidden){ if(!profiles.length) return "exit"; goWho(); return "stay"; }
-  if(!$("#pick").hidden){ goWho(); return "stay"; }
-  if(!$("#home").hidden){ stopSpeech(); show("pick"); return "stay"; }
+  if(!$("#native").hidden || !$("#pick").hidden){ goWho(); return "stay"; }
+  if(!$("#home").hidden){ goPick(); return "stay"; }
   home(); return "stay";
 };
 
